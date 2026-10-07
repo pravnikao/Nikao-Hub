@@ -476,7 +476,14 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
   .experience { gap: 36px; }
 }
 @media (max-width: 700px) {
-  html { scroll-padding-top: 130px; }
+  /* Mobile pins exactly one element: the bar you navigate with. The header
+     scrolls away so the viewport isn't eaten by chrome on a small screen.
+     JS refines scroll-padding-top to the pinned bar's real height + 8px. */
+  html { scroll-padding-top: 64px; }
+  .site-header { position: static; }
+  .tabbar-primary { position: sticky; top: 0; z-index: 30; }
+  /* Engineering has no primary bar, so the hub strip is the navigation. */
+  #primaryTabBar[hidden] ~ #main .tabbar-sub { position: sticky; top: 0; z-index: 25; }
   .wrap { width: calc(100% - 40px); }
   /* Logo + CTA on row one, the full track switcher on row two, so every
      track stays visible instead of hiding in a scrolled strip. */

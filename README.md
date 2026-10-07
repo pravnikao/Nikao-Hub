@@ -8,7 +8,7 @@ engineering team's learning roadmap.
 ## Run
 
 ```
-cd nikao_qa_growth_hub
+cd Nikao-Growth-Hub
 python -m http.server 8000
 ```
 
