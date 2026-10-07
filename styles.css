@@ -293,6 +293,15 @@ details li { margin: 8px 0; }
 .pillars p { color: var(--fg-inverse-muted); margin-bottom: 0; font-size: var(--text-body-sm); }
 .pillars .delivery-result { color: var(--lime); font-size: 14px; margin-top: 18px; line-height: 1.6; }
 
+/* Light-background pillars, used by the How we work tab. Same specificity as
+   the rules above, so source order decides; the purple .approach band in the
+   hub Overview keeps the original treatment. */
+.pillars-light { margin-top: 0; }
+.pillars-light > div { border-top: 1px solid rgba(22,14,43,.15); }
+.pillars-light span { color: var(--green-ink); }
+.pillars-light p { color: var(--ink); }
+.pillars-light .delivery-result { color: var(--green-ink); font-weight: var(--weight-semibold); }
+
 /* ================= AI ================= */
 .ai { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
 .ai-heading p { max-width: 370px; }
@@ -513,6 +522,7 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
   .cards p, .pillars p, .ai-steps .quality-point p { font-size: var(--text-body); }
   .cards .service-outcome { font-size: var(--text-body-sm); }
   .pillars { grid-template-columns: 1fr; gap: 28px; margin-top: 30px; }
+  .pillars-light { margin-top: 0; }
   .pillars .delivery-result { font-size: var(--text-body-sm); }
   .approach { padding: 55px 0; }
   .ai { grid-template-columns: 1fr; gap: 22px; }
