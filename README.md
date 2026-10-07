@@ -1,4 +1,4 @@
-# Nikao Growth Hub
+# Nikao Hub
 
 A dependency-free, standalone HTML/CSS/JS learning hub. No login, no accounts,
 no saved progress, no integrations — just a browsable front end over the
@@ -8,11 +8,14 @@ engineering team's learning roadmap.
 ## Run
 
 ```
-cd Nikao-Growth-Hub
+git clone https://github.com/pravnikao/Nikao-Hub.git
+cd Nikao-Hub
 python -m http.server 8000
 ```
 
 Then open http://localhost:8000
+
+Live at https://pravnikao.github.io/Nikao-Hub/
 
 ## Content
 
