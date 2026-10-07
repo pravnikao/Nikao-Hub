@@ -8,9 +8,71 @@
   let categories = [];
   let allResources = [];
 
-  const state = { category: null, page: "home", currentSkill: null };
+  const state = { category: null, tab: null, hubTab: "home", currentSkill: null };
 
-  // Track-scoped copy. Testing strings are the originals, verbatim.
+  // ---------------------------------------------------------------- tab config
+  // One entry per track, so a future track declares its own tabs without
+  // touching the tab machinery. A track with a single primary tab hides the
+  // primary bar and promotes the hub sub-strip to main navigation.
+  const TRACK_TABS = {
+    testing: {
+      default: "overview",
+      tabs: [
+        { id: "overview",     label: "Overview" },
+        { id: "capabilities", label: "Our capabilities" },
+        { id: "approach",     label: "How we work" },
+        { id: "ai",           label: "AI & quality" },
+        { id: "hub",          label: "Growth Hub" }
+      ]
+    },
+    engineering: {
+      default: "hub",
+      tabs: [
+        { id: "hub", label: "Growth Hub" }
+      ]
+    }
+  };
+
+  const HUB_SUBTABS = [
+    { id: "home",           label: "Overview" },
+    { id: "skills",         label: "Explore skills" },
+    { id: "library",        label: "Learning library" },
+    { id: "paths",          label: "Learning paths" },
+    { id: "certifications", label: "Certifications" },
+    { id: "platforms",      label: "Platforms" }
+  ];
+
+  const SITE_NAME = "Nikao Growth Hub";
+  const OVERVIEW_TITLE = "Quality Engineering & Assurance | Nikao";
+  const OVERVIEW_DESCRIPTION = "Hands-on quality engineering for complex change. Explore Nikao’s assurance, testing, automation, integration and migration capabilities.";
+  const HUB_DESCRIPTION = "Curated learning roadmaps for testing and engineering — courses, videos and references sourced from Nikao's learning roadmaps.";
+
+  // Showcase tabs get the contact band; the Growth Hub does not.
+  const SHOWCASE_TABS = new Set(["overview", "capabilities", "approach", "ai"]);
+
+  // ---------------------------------------------------------------- helpers
+  const qs = selector => document.querySelector(selector);
+  const qsa = selector => [...document.querySelectorAll(selector)];
+  const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  }[char]));
+  const slugify = value => String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const typeLabel = type => ({ course: "Course", video: "Video", article: "Reference" }[type] || "Resource");
+  const looseMatch = (a, b) => {
+    const al = String(a ?? "").toLowerCase();
+    const bl = String(b ?? "").toLowerCase();
+    return !!al && !!bl && (al.includes(bl) || bl.includes(al));
+  };
+  const pad2 = n => String(n).padStart(2, "0");
+
+  // Engineering resources carry level/mandatory instead of the
+  // premium / free-YouTube / free-references split the Testing track uses.
+  const isLeveled = () => track.resourceModel === "leveled";
+  const tabConfig = () => TRACK_TABS[track.id] || TRACK_TABS.testing;
+  const hasTab = id => tabConfig().tabs.some(t => t.id === id);
+  const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------------------------------------------------------------- copy
   const TRACK_COPY = {
     testing: {
       homeEyebrow: "QA growth hub",
@@ -38,25 +100,9 @@
       certsLead: "Credentials named directly in the engineering roadmap, linked to the official source."
     }
   };
-
-  const qs = selector => document.querySelector(selector);
-  const qsa = selector => [...document.querySelectorAll(selector)];
-  const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-  }[char]));
-  const slugify = value => String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  const typeLabel = type => ({ course: "Course", video: "Video", article: "Reference" }[type] || "Resource");
-  const looseMatch = (a, b) => {
-    const al = String(a ?? "").toLowerCase();
-    const bl = String(b ?? "").toLowerCase();
-    return !!al && !!bl && (al.includes(bl) || bl.includes(al));
-  };
-
-  // Engineering resources carry level/mandatory/points instead of the
-  // premium / free-YouTube / free-references split the Testing track uses.
-  const isLeveled = () => track.resourceModel === "leveled";
   const copy = () => TRACK_COPY[track.id] || TRACK_COPY.testing;
 
+  // ---------------------------------------------------------------- lookups
   function findSkillByLooseName(name) {
     for (const category of categories) {
       for (const skill of category.skills) {
@@ -89,19 +135,216 @@
     return bySection("Premium Courses") || bySection("Free YouTube") || bySection("Free References") || null;
   }
 
-  function navigate(page, opts = {}) {
-    state.page = page;
-    qsa(".page").forEach(el => el.classList.toggle("active", el.id === `${page}Page`));
-    qsa("[data-nav]").forEach(el => el.classList.toggle("active", el.dataset.nav === page));
-    const hash = page === "skillDetail" && opts.slug ? `#skill/${opts.slug}` : `#${page}`;
-    history.replaceState(null, "", hash);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (page === "library") renderLibrary();
+  // ================================================================ TABS
+  // Built once per track. Tab *state* is updated in place by syncTabStates()
+  // so switching tabs never destroys the focused button.
+  function buildTabBars() {
+    const config = tabConfig();
+    const single = config.tabs.length <= 1;
+
+    // One primary tab -> hide the bar; the hub sub-strip becomes main nav.
+    qs("#primaryTabBar").hidden = single;
+    qs("#primaryTabList").innerHTML = single ? "" : config.tabs.map(tab => `
+      <button class="tab" type="button" role="tab" id="tab-${tab.id}"
+        aria-controls="panel-${tab.id}" aria-selected="false" tabindex="-1"
+        data-tab="${tab.id}">${escapeHtml(tab.label)}</button>
+    `).join("");
+
+    qs("#hubTabList").innerHTML = HUB_SUBTABS.map(tab => `
+      <button class="tab" type="button" role="tab" id="hubtab-${tab.id}"
+        aria-controls="hubpanel-${tab.id}" aria-selected="false" tabindex="-1"
+        data-hub-tab="${tab.id}">${escapeHtml(tab.label)}</button>
+    `).join("");
   }
 
+  function syncTabStates() {
+    const hubActive = state.currentSkill ? "skills" : state.hubTab;
+    const mark = (nodes, activeId, key) => nodes.forEach(node => {
+      const on = node.dataset[key] === activeId;
+      node.setAttribute("aria-selected", String(on));
+      node.tabIndex = on ? 0 : -1;
+    });
+    mark(qsa("#primaryTabList .tab"), state.tab, "tab");
+    mark(qsa("#hubTabList .tab"), hubActive, "hubTab");
+  }
+
+  function updateScrollHints() {
+    qsa(".tabbar").forEach(bar => {
+      const strip = bar.querySelector(".tabbar-scroll");
+      if (!strip) return;
+      bar.classList.toggle("is-scrollable", strip.scrollWidth > strip.clientWidth + 1);
+    });
+  }
+
+  function scrollActiveTabIntoView() {
+    qsa('.tab[aria-selected="true"]').forEach(tab => {
+      const strip = tab.closest(".tabbar-scroll");
+      if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return;
+      const left = tab.offsetLeft - (strip.clientWidth - tab.offsetWidth) / 2;
+      strip.scrollTo({ left: Math.max(0, left), behavior: reducedMotion() ? "auto" : "smooth" });
+    });
+  }
+
+  function stickyOffset() {
+    const header = qs(".site-header");
+    const bar = qs("#primaryTabBar");
+    return (header ? header.offsetHeight : 0) + (bar && !bar.hidden ? bar.offsetHeight : 0);
+  }
+
+  function showPanels() {
+    const config = tabConfig();
+    const panelId = `panel-${state.tab}`;
+
+    // Only panels belonging to the active track are eligible.
+    qsa("#main > .tabpanel").forEach(panel => {
+      const owner = panel.dataset.track;
+      const eligible = (!owner || owner === track.id) && config.tabs.some(t => `panel-${t.id}` === panel.id);
+      panel.hidden = !(eligible && panel.id === panelId);
+    });
+
+    const hubSub = state.currentSkill ? "skillDetail" : state.hubTab;
+    qsa(".hub-panel").forEach(panel => {
+      panel.hidden = panel.id !== `hubpanel-${hubSub}`;
+    });
+
+    qs("#contactBand").hidden = !SHOWCASE_TABS.has(state.tab);
+  }
+
+  function animatePanel() {
+    if (reducedMotion()) return;
+    const panel = state.tab === "hub"
+      ? qs(`#hubpanel-${state.currentSkill ? "skillDetail" : state.hubTab}`)
+      : qs(`#panel-${state.tab}`);
+    if (!panel) return;
+    panel.classList.remove("is-entering");
+    void panel.offsetWidth; // restart the animation
+    panel.classList.add("is-entering");
+  }
+
+  function currentTitle() {
+    if (state.tab === "overview" && track.id === "testing") return OVERVIEW_TITLE;
+    if (state.tab === "hub") {
+      if (state.currentSkill) {
+        const found = findSkill(state.currentSkill);
+        if (found) return `${found.skill.name} | ${SITE_NAME}`;
+      }
+      if (state.hubTab === "home") return SITE_NAME;
+      const sub = HUB_SUBTABS.find(t => t.id === state.hubTab);
+      return sub ? `${sub.label} | ${SITE_NAME}` : SITE_NAME;
+    }
+    const tab = tabConfig().tabs.find(t => t.id === state.tab);
+    return tab ? `${tab.label} | ${SITE_NAME}` : SITE_NAME;
+  }
+
+  function currentHash() {
+    if (state.tab !== "hub") return `#${state.tab}`;
+    if (state.currentSkill) return `#skill/${state.currentSkill}`;
+    if (state.hubTab === "home") return "#hub";
+    return `#${state.hubTab}`;
+  }
+
+  function syncChrome() {
+    document.title = currentTitle();
+    const onOverview = state.tab === "overview" && track.id === "testing";
+    qs("#metaDescription").setAttribute("content", onOverview ? OVERVIEW_DESCRIPTION : HUB_DESCRIPTION);
+  }
+
+  function scrollToPanelTop() {
+    const behavior = reducedMotion() ? "auto" : "smooth";
+    // Primary tabs always open at the banner; sub-tabs align below the sticky chrome.
+    if (state.tab !== "hub" || state.hubTab === "home" && !state.currentSkill) {
+      window.scrollTo({ top: 0, behavior });
+      return;
+    }
+    const hub = qs("#panel-hub");
+    if (!hub) { window.scrollTo({ top: 0, behavior }); return; }
+    const top = window.scrollY + hub.getBoundingClientRect().top - stickyOffset();
+    window.scrollTo({ top: Math.max(0, top), behavior });
+  }
+
+  /**
+   * Single entry point for every navigation.
+   * opts.push  — add a history entry (tab clicks) vs replace (initial load, popstate)
+   * opts.quiet — skip scrolling and motion (initial load)
+   */
+  function goTo(tab, opts = {}) {
+    const { hubTab, skillSlug = null, push = true, quiet = false } = opts;
+
+    state.tab = hasTab(tab) ? tab : tabConfig().default;
+    if (hubTab !== undefined) state.hubTab = hubTab;
+    state.currentSkill = skillSlug;
+
+    syncTabStates();
+    showPanels();
+    // Measure the strips only once their panel is visible — a hidden bar is 0px wide.
+    updateScrollHints();
+    syncChrome();
+
+    const hash = currentHash();
+    if (push && location.hash !== hash) history.pushState({ tab: state.tab }, "", hash);
+    else if (!push) history.replaceState({ tab: state.tab }, "", hash);
+
+    if (!quiet) { animatePanel(); scrollToPanelTop(); }
+    scrollActiveTabIntoView();
+  }
+
+  // ---------------------------------------------------------------- routing
+  function applyRoute(rawHash, opts = {}) {
+    const hash = String(rawHash || "").replace(/^#/, "");
+    const fallback = tabConfig().default;
+
+    if (hash.startsWith("skill/")) {
+      const slug = hash.slice("skill/".length);
+      if (hasTab("hub") && findSkill(slug)) {
+        renderSkillDetail(slug, opts);
+        return;
+      }
+      goTo(fallback, { hubTab: "home", ...opts });
+      return;
+    }
+
+    // Legacy: #home was the hub landing page; it now opens the track's Overview.
+    if (hash === "home" || hash === "overview") {
+      goTo(hasTab("overview") ? "overview" : fallback, { hubTab: "home", ...opts });
+      return;
+    }
+
+    if (HUB_SUBTABS.some(t => t.id === hash)) {
+      if (hasTab("hub")) { goTo("hub", { hubTab: hash, ...opts }); return; }
+      goTo(fallback, { hubTab: "home", ...opts });
+      return;
+    }
+
+    if (hash === "hub") { goTo(hasTab("hub") ? "hub" : fallback, { hubTab: "home", ...opts }); return; }
+
+    // A hash the active track has no tab for falls back to that track's default.
+    goTo(hasTab(hash) ? hash : fallback, { hubTab: hash === fallback ? state.hubTab : "home", ...opts });
+  }
+
+  // ---------------------------------------------------------------- keyboard
+  function tabKeydown(event) {
+    const tab = event.target.closest('[role="tab"]');
+    if (!tab) return;
+    const strip = tab.closest('[role="tablist"]');
+    const tabs = [...strip.querySelectorAll('[role="tab"]')];
+    const index = tabs.indexOf(tab);
+    let next = -1;
+
+    if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+    else if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = tabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    tabs[next].focus();
+    tabs[next].click();
+  }
+
+  // ================================================================ RENDER
   function renderTrackSwitcher() {
     const pills = tracks.map(item => `
-      <button class="track-pill ${item.id === track.id ? "active" : ""}" data-track="${escapeHtml(item.id)}"
+      <button class="track-pill ${item.id === track.id ? "active" : ""}" type="button" data-track="${escapeHtml(item.id)}"
         aria-pressed="${item.id === track.id}" title="${escapeHtml(item.name)}">
         ${escapeHtml(item.shortName || item.name)}
       </button>
@@ -140,8 +383,8 @@
 
   function renderHomeCategories() {
     qs("#homeCategories").innerHTML = categories.map(category => `
-      <article class="skill-card" tabindex="0" data-accent="${category.accent}" data-category-open="${escapeHtml(category.name)}">
-        <div class="card-kicker">Category ${category.displayOrder}</div>
+      <article class="skill-card" tabindex="0" role="button" data-accent="${category.accent}" data-category-open="${escapeHtml(category.name)}">
+        <div class="card-kicker">${pad2(category.displayOrder)}.</div>
         <h3>${escapeHtml(category.name)}</h3>
         <p>${escapeHtml(category.description)}</p>
         <span class="card-link">${category.skills.length} skills &rarr;</span>
@@ -150,10 +393,9 @@
   }
 
   function renderPills() {
-    const pills = categories.map(c => ({ name: c.name, label: c.name }));
-    qs("#categoryPills").innerHTML = pills.map(item => `
-      <button class="pill ${state.category === item.name ? "active" : ""}" data-category="${escapeHtml(item.name)}">
-        ${escapeHtml(item.label)}
+    qs("#categoryPills").innerHTML = categories.map(category => `
+      <button class="pill ${state.category === category.name ? "active" : ""}" type="button" data-category="${escapeHtml(category.name)}">
+        ${escapeHtml(category.name)}
       </button>
     `).join("");
   }
@@ -169,10 +411,10 @@
     const visibleCategories = categories.filter(category => category.name === state.category);
 
     qs("#skillGrid").innerHTML = visibleCategories.flatMap(category =>
-      category.skills.map(skill => `
-        <article class="skill-card" tabindex="0" data-accent="${category.accent}"
+      category.skills.map((skill, index) => `
+        <article class="skill-card" tabindex="0" role="button" data-accent="${category.accent}"
           data-skill-slug="${slugify(skill.name)}">
-          <div class="card-kicker">${escapeHtml(category.name)}</div>
+          <div class="card-kicker">${pad2(index + 1)}.</div>
           <h3>${escapeHtml(skill.name)}</h3>
           <p>${escapeHtml(skillSummary(skill))}</p>
           <span class="card-link">View skill details &rarr;</span>
@@ -209,11 +451,10 @@
     `;
   }
 
-  function renderSkillDetail(slug) {
+  function renderSkillDetail(slug, opts = {}) {
     const found = findSkill(slug);
-    if (!found) { navigate("skills"); return; }
+    if (!found) { goTo("hub", { hubTab: "skills", ...opts }); return; }
     const { category, skill } = found;
-    state.currentSkill = slug;
 
     qs("#skillDetailCategory").textContent = category.name;
     qs("#skillDetailTitle").textContent = skill.name;
@@ -271,13 +512,13 @@
         <h3>Related certifications</h3>
       </div>
       <div class="badges">
-        ${relatedCerts.map(item => `<button type="button" class="badge" data-nav="certifications">${escapeHtml(item.name)}</button>`).join("")}
+        ${relatedCerts.map(item => `<button type="button" class="badge" data-hub-tab="certifications">${escapeHtml(item.name)}</button>`).join("")}
       </div>
     ` : "";
 
     qs("#skillDetailBody").innerHTML = sectionsHtml + relatedCertsHtml;
 
-    navigate("skillDetail", { slug });
+    goTo("hub", { hubTab: "skills", skillSlug: slug, ...opts });
   }
 
   function populateFilters() {
@@ -325,7 +566,7 @@
     const groups = track.certifications || [];
     qs("#certificationGroups").innerHTML = groups.map(group => `
       <div class="cert-group-header">
-        <span class="step-badge" style="background:var(--nikao-${group.accent === "ocean" ? "ocean" : group.accent === "teal" ? "teal" : "lime"});${group.accent === "lime" ? "color:var(--nikao-aubergine)" : ""}">${escapeHtml(group.category.split(" ")[0][0])}</span>
+        <span class="step-badge">${escapeHtml(group.category.split(" ")[0][0])}</span>
         <h3>${escapeHtml(group.category)}</h3>
       </div>
       <div class="cert-grid">
@@ -396,7 +637,7 @@
 
           return `
             <div class="path-step">
-              <span class="step-number">${index + 1}</span>
+              <span class="step-number">${pad2(index + 1)}.</span>
               <div>
                 <strong>${escapeHtml(title)}</strong>
                 ${description ? `<p>${escapeHtml(description)}</p>` : ""}
@@ -430,6 +671,7 @@
     qs("#premiumPlatformGrid").hidden = !premium.length;
   }
 
+  // ---------------------------------------------------------------- track
   function loadTrack(id) {
     const next = tracks.find(item => item.id === id);
     if (!next) return;
@@ -450,6 +692,7 @@
 
   function renderAll() {
     renderTrackSwitcher();
+    buildTabBars();
     renderCopy();
     renderStats();
     renderHomeCategories();
@@ -471,16 +714,27 @@
     qs("#typeFilter").value = "";
     qs("#costFilter").value = "";
     renderAll();
-    // A skill slug from the previous track has no equivalent here.
-    navigate(state.page === "skillDetail" ? "skills" : state.page);
+    renderLibrary();
+    // Switching track falls back to that track's default tab.
+    goTo(tabConfig().default, { hubTab: "home", skillSlug: null });
   }
 
+  // ---------------------------------------------------------------- events
   document.addEventListener("click", event => {
     const trackButton = event.target.closest("[data-track]");
-    if (trackButton) { switchTrack(trackButton.dataset.track); return; }
+    if (trackButton && trackButton.classList.contains("track-pill")) { switchTrack(trackButton.dataset.track); return; }
 
-    const nav = event.target.closest("[data-nav]");
-    if (nav) { navigate(nav.dataset.nav); return; }
+    const primaryTab = event.target.closest("[data-tab]");
+    if (primaryTab) { goTo(primaryTab.dataset.tab, { hubTab: state.hubTab, skillSlug: null }); return; }
+
+    const goTab = event.target.closest("[data-go-tab]");
+    if (goTab) { goTo(goTab.dataset.goTab, { skillSlug: null }); return; }
+
+    const hubTab = event.target.closest("[data-hub-tab]");
+    if (hubTab) { goTo("hub", { hubTab: hubTab.dataset.hubTab, skillSlug: null }); return; }
+
+    const homeLink = event.target.closest("[data-nav-home]");
+    if (homeLink) { event.preventDefault(); goTo(tabConfig().default, { hubTab: "home", skillSlug: null }); return; }
 
     const categoryButton = event.target.closest("[data-category]");
     if (categoryButton) {
@@ -495,7 +749,7 @@
       state.category = categoryCard.dataset.categoryOpen;
       renderPills();
       renderSkills();
-      navigate("skills");
+      goTo("hub", { hubTab: "skills", skillSlug: null });
       return;
     }
 
@@ -504,6 +758,7 @@
   });
 
   document.addEventListener("keydown", event => {
+    if (event.target.closest('[role="tab"]')) { tabKeydown(event); return; }
     if ((event.key === "Enter" || event.key === " ") && event.target.matches(".skill-card")) {
       event.preventDefault();
       event.target.click();
@@ -514,20 +769,16 @@
     qs(`#${id}`).addEventListener(id === "resourceSearch" ? "input" : "change", renderLibrary);
   });
 
-  qs("#mobileMenuButton").addEventListener("click", () => {
-    const order = ["home", "skills", "library", "paths", "certifications", "platforms"];
-    const next = order[(order.indexOf(state.page) + 1) % order.length] || "home";
-    navigate(next);
+  window.addEventListener("popstate", () => applyRoute(location.hash, { push: false }));
+  // A hash typed or pasted into the address bar on the live page fires hashchange,
+  // not popstate. Guarded so our own pushState writes don't re-enter.
+  window.addEventListener("hashchange", () => {
+    if (location.hash !== currentHash()) applyRoute(location.hash, { push: false });
   });
+  window.addEventListener("resize", updateScrollHints);
 
+  // ---------------------------------------------------------------- boot
   loadTrack(tracks[0].id);
   renderAll();
-
-  const initialHash = location.hash.replace("#", "");
-  if (initialHash.startsWith("skill/")) {
-    renderSkillDetail(initialHash.replace("skill/", ""));
-  } else {
-    const pages = ["home", "skills", "library", "paths", "certifications", "platforms"];
-    navigate(pages.includes(initialHash) ? initialHash : "home");
-  }
+  applyRoute(location.hash, { push: false, quiet: true });
 })();

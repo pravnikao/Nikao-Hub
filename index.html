@@ -3,201 +3,442 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Nikao Growth Hub — curated learning roadmaps for testing and engineering.">
-  <title>Nikao Growth Hub</title>
+  <meta name="description" id="metaDescription" content="Hands-on quality engineering for complex change. Explore Nikao&rsquo;s assurance, testing, automation, integration and migration capabilities.">
+  <title>Quality Engineering &amp; Assurance | Nikao</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%23160e2b'/%3E%3Ctext x='7' y='24' font-size='27' font-family='sans-serif' font-weight='bold' fill='%23c6e044'%3En%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <a class="skip" href="#main">Skip to content</a>
+
   <header class="site-header">
-    <div class="container nav-shell">
-      <a class="brand" href="#home" data-nav="home" aria-label="Nikao Growth Hub home">
-        <img src="assets/nikao-logo.svg" alt="Nikao">
+    <div class="wrap header-inner">
+      <a class="brand" href="#overview" data-nav-home aria-label="Nikao Growth Hub home">
+        <img src="assets/nikao-logo.svg" alt="Nikao Technology">
       </a>
-      <nav class="nav-links" aria-label="Primary navigation">
-        <button class="nav-link active" data-nav="home">Home</button>
-        <button class="nav-link" data-nav="skills">Explore skills</button>
-        <button class="nav-link" data-nav="library">Learning library</button>
-        <button class="nav-link" data-nav="paths">Learning paths</button>
-        <button class="nav-link" data-nav="certifications">Certifications</button>
-        <button class="nav-link" data-nav="platforms">Platforms</button>
-      </nav>
-      <button class="action-button accent small" data-nav="skills">Explore skills</button>
-      <button class="mobile-menu" id="mobileMenuButton" aria-label="Open navigation">Menu</button>
-    </div>
-    <div class="track-bar">
-      <div class="container track-bar-inner">
-        <span class="track-bar-label">Track</span>
-        <div class="track-switcher" id="trackSwitcher" role="group" aria-label="Select a track"></div>
-      </div>
+      <div class="track-switcher" id="trackSwitcher" role="group" aria-label="Select a track"></div>
+      <a class="button lime header-cta" href="https://nika-o.com/contact-us/" target="_blank" rel="noopener">Let&rsquo;s talk</a>
     </div>
   </header>
 
-  <main>
-    <!-- HOME -->
-    <section id="homePage" class="page active">
+  <!-- PRIMARY TABS (purple, flows into the hero) -->
+  <div class="tabbar tabbar-primary" id="primaryTabBar" hidden>
+    <div class="wrap tabbar-scroll" id="primaryTabList" role="tablist" aria-label="Sections"></div>
+  </div>
+
+  <main id="main">
+
+    <!-- ================= TESTING / OVERVIEW ================= -->
+    <section class="tabpanel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-track="testing" tabindex="-1">
       <div class="hero">
-        <div class="container hero-grid">
+        <div class="wrap hero-grid">
           <div>
-            <p class="eyebrow" id="homeEyebrow">QA growth hub</p>
-            <h1 id="homeHeading">Confidence in testing, built one skill at a time.</h1>
-            <p class="lead" id="homeLead">Every course, video and reference in this hub is pulled directly from Nikao's Complete QA &amp; Test Engineering Learning Roadmap — nothing added, nothing invented.</p>
-            <div class="hero-actions">
-              <button class="action-button" data-nav="skills">Explore skills</button>
-              <button class="action-button ghost" data-nav="library">Browse the library</button>
-            </div>
+            <div class="eyebrow">Quality engineering &amp; assurance</div>
+            <h1>Confidence in <span class="teal">design.</span><br>Confidence in <span class="green">delivery.</span></h1>
+            <p class="lead">Experienced assurance leadership.<br>Hands-on engineering. Clear release evidence.</p>
+            <p class="intro">We bring deep wealth and investment expertise to large-scale programmes, complex data and business migrations, and scalable, reliable platforms.</p>
+            <button class="button lime" type="button" data-go-tab="capabilities">Explore our capabilities</button>
           </div>
-          <aside class="hero-panel">
-            <strong>Learning made practical</strong>
-            <span>Pick a category, open a skill, and jump straight to the real course, video or article — every link opens the source directly.</span>
+          <aside class="hero-quality" aria-labelledby="quality-heading">
+            <div class="eyebrow">Quality built into delivery</div>
+            <h2 id="quality-heading">From business risk<br>to release confidence.</h2>
+            <div class="quality-point">
+              <span class="quality-number">01.</span>
+              <div>
+                <h3>Focus on what matters</h3>
+                <p>Prioritise customer journeys, operational controls and the consequences of failure.</p>
+              </div>
+            </div>
+            <div class="quality-point">
+              <span class="quality-number">02.</span>
+              <div>
+                <h3>Test across the platform</h3>
+                <p>Connect functional testing with API, integration and data checks. Automate repeatable controls at the right layer.</p>
+              </div>
+            </div>
+            <div class="quality-point">
+              <span class="quality-number">03.</span>
+              <div>
+                <h3>Make readiness visible</h3>
+                <p>Bring coverage, execution and defects together so decision-makers understand the evidence and remaining risk.</p>
+              </div>
+            </div>
           </aside>
         </div>
-      </div>
-      <div class="container">
-        <div class="stats" id="stats"></div>
-        <div class="page-header">
-          <div>
-            <p class="eyebrow">Start exploring</p>
-            <h2>Learning categories</h2>
-            <p>Choose an area to see its skills and the resources behind each one.</p>
-          </div>
+        <div class="hero-bottom wrap">
+          <span>Wealth &amp; pensions</span>
+          <span>Financial services</span>
+          <span>Complex platform change</span>
         </div>
-        <div class="skill-grid" id="homeCategories"></div>
       </div>
 
-      <section class="dark-section" id="homeValueSection">
-        <div class="container">
-          <p class="eyebrow">Why this exists</p>
-          <h2 class="dark-section-heading">A single, honest map of where to learn testing — instead of forty open tabs.</h2>
-          <div class="value-grid">
-            <div class="value-tile">
-              <div class="value-icon">✓</div>
-              <h3>Source-backed</h3>
-              <p>Every resource traces back to the roadmap document — no filler links, no guesses.</p>
+      <section class="experience wrap" aria-labelledby="experience-heading">
+        <div>
+          <div class="eyebrow">Established expertise</div>
+          <h2 id="experience-heading">Experience that anticipates<br>delivery risk.</h2>
+          <p>Our QA leaders have built and led teams across functional testing, performance and automation for complex wealth and financial services platforms.</p>
+          <p>Our founding team has worked together for more than 10 years, delivering regulated products and digital transformation alongside platforms, vendors and delivery partners.</p>
+        </div>
+        <div class="experience-insight">
+          <h3>Product knowledge applied to delivery</h3>
+          <p>Our deep product and market knowledge helps us recognise where complex change can fail and put practical controls in place early.</p>
+          <p>We connect requirements, data and platform behaviour with the customer and operational outcomes that must work.</p>
+        </div>
+      </section>
+    </section>
+
+    <!-- ================= TESTING / OUR CAPABILITIES ================= -->
+    <section class="tabpanel" id="panel-capabilities" role="tabpanel" aria-labelledby="tab-capabilities" data-track="testing" tabindex="-1" hidden>
+      <div class="hero compact">
+        <div class="wrap">
+          <div class="eyebrow">Our capabilities</div>
+          <h1>Engineer confidence<br>into every change.</h1>
+          <p class="lead">From shaping the strategy to proving the outcome, we bring the right expertise to the work that matters.</p>
+        </div>
+      </div>
+      <div class="wrap section-pad">
+        <div class="cards">
+          <article>
+            <span class="number">01.</span>
+            <h3>Quality strategy &amp;<br>independent assurance</h3>
+            <p>Bring clarity to coverage, ownership and release readiness. We define risk-led strategies and turn test evidence into a clear view of progress and remaining risk.</p>
+            <p class="service-outcome"><span>Client value</span>Clearer release decisions, supported by evidence.</p>
+            <details>
+              <summary>What we deliver</summary>
+              <ul>
+                <li>Test strategy, maturity reviews and requirements traceability</li>
+                <li>Supplier oversight and evidence assessment</li>
+                <li>Quality gates, completion evidence and executive reporting</li>
+              </ul>
+            </details>
+          </article>
+          <article>
+            <span class="number">02.</span>
+            <h3>Functional &amp;<br>end-to-end testing</h3>
+            <p>Validate the journeys that matter to customers, advisers and operations. Structured testing and exploration cover everyday behaviour, exceptions and dependencies.</p>
+            <p class="service-outcome"><span>Client value</span>Confidence in complete customer and operational journeys.</p>
+            <details>
+              <summary>What we deliver</summary>
+              <ul>
+                <li>Business journey and scenario design</li>
+                <li>Exploratory and regression testing</li>
+                <li>Business acceptance support</li>
+              </ul>
+            </details>
+          </article>
+          <article>
+            <span class="number">03.</span>
+            <h3>Test automation &amp;<br>continuous quality</h3>
+            <p>Build trusted, maintainable automation. We design layered frameworks and integrate repeatable checks into delivery pipelines, bringing feedback closer to the change.</p>
+            <p class="service-outcome"><span>Client value</span>Reliable regression and earlier feedback on change.</p>
+            <details>
+              <summary>What we deliver</summary>
+              <ul>
+                <li>UI and API automation frameworks</li>
+                <li>Existing-suite assessment and improvement</li>
+                <li>CI/CD integration, coaching and handover</li>
+              </ul>
+            </details>
+          </article>
+          <article>
+            <span class="number">04.</span>
+            <h3>API, integration &amp;<br>data assurance</h3>
+            <p>Follow the transaction beyond the screen. Validate interfaces, feeds, transformations and downstream outputs across connected platforms and services.</p>
+            <p class="service-outcome"><span>Client value</span>Greater confidence in cross-system data and transactions.</p>
+            <details>
+              <summary>What we deliver</summary>
+              <ul>
+                <li>API and integration testing</li>
+                <li>File and feed validation</li>
+                <li>Data integrity, transformation and reconciliation checks</li>
+              </ul>
+            </details>
+          </article>
+          <article>
+            <span class="number">05.</span>
+            <h3>Migration &amp;<br>release assurance</h3>
+            <p>Prove the migration progressively. Validate accurate, serviceable customer records, reconciled financial positions and working journeys, with evidence of readiness at each stage.</p>
+            <p class="service-outcome"><span>Client value</span>Confidence in customer outcomes after the move.</p>
+            <details>
+              <summary>What we deliver</summary>
+              <ul>
+                <li>Migration strategy and traceable acceptance criteria</li>
+                <li>Mapping, transformation and financial reconciliation checks</li>
+                <li>End-to-end journeys and operational acceptance on migrated data</li>
+                <li>Technical dry runs and full business dress rehearsals</li>
+                <li>Production-scale, cutover and rollback evidence, followed by business verification</li>
+              </ul>
+            </details>
+          </article>
+          <article>
+            <span class="number">06.</span>
+            <h3>Performance &amp;<br>operational readiness</h3>
+            <p>Understand how the platform behaves under pressure. Shape testing around business peaks, processing volumes and recovery needs alongside engineering and operational teams.</p>
+            <p class="service-outcome"><span>Client value</span>Evidence of capacity and readiness for business peaks.</p>
+            <details>
+              <summary>What we deliver</summary>
+              <ul>
+                <li>Load, stress and batch-throughput testing at representative volumes</li>
+                <li>Business workload and operational exception scenarios</li>
+                <li>Recovery validation and cutover timing evidence</li>
+              </ul>
+            </details>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TESTING / HOW WE WORK ================= -->
+    <section class="tabpanel" id="panel-approach" role="tabpanel" aria-labelledby="tab-approach" data-track="testing" tabindex="-1" hidden>
+      <div class="hero compact">
+        <div class="wrap">
+          <div class="eyebrow">How we work</div>
+          <h1>Close to the problem.<br>Committed to the outcome.</h1>
+        </div>
+      </div>
+      <section class="approach">
+        <div class="wrap">
+          <div class="pillars">
+            <div>
+              <span>01.</span>
+              <h3>Understand the challenge</h3>
+              <p>Deep product and market knowledge connects discovery and design with critical journeys, delivery constraints and gaps in assurance.</p>
+              <p class="delivery-result">A shared view of priorities, scope and ownership.</p>
             </div>
-            <div class="value-tile">
-              <div class="value-icon">↗</div>
-              <h3>Direct access</h3>
-              <p>Cards open the real course, video or article in a new tab. No sign-up wall in the way.</p>
+            <div>
+              <span>02.</span>
+              <h3>Beyond consulting</h3>
+              <p>We combine solutions consulting with engineering expertise, from detailed analysis to hands-on testing and implementation. We stay close to the work through to outcomes.</p>
+              <p class="delivery-result">Practical test assets, trusted automation and usable evidence.</p>
             </div>
-            <div class="value-tile">
-              <div class="value-icon">≡</div>
-              <h3>Free &amp; premium, side by side</h3>
-              <p>Every entry is labelled clearly, so you can choose based on budget, not guesswork.</p>
+            <div>
+              <span>03.</span>
+              <h3>Augment acceleration</h3>
+              <p>We add the right expertise at the right stage, working alongside delivery teams and ecosystem partners. Coaching and practical support strengthen people, processes and platforms.</p>
+              <p class="delivery-result">Documented workflows, coaching and lasting delivery capability.</p>
             </div>
           </div>
         </div>
       </section>
     </section>
 
-    <!-- EXPLORE SKILLS -->
-    <section id="skillsPage" class="page">
+    <!-- ================= TESTING / AI & QUALITY ================= -->
+    <section class="tabpanel" id="panel-ai" role="tabpanel" aria-labelledby="tab-ai" data-track="testing" tabindex="-1" hidden>
       <div class="hero compact">
-        <div class="container">
-          <p class="eyebrow">Skills catalogue</p>
-          <h1>Explore skills</h1>
-          <p class="lead" id="skillsLead">Discover the areas of testing that interest you. Choose a category, then open a skill to see its resources.</p>
+        <div class="wrap">
+          <div class="eyebrow">AI &amp; quality</div>
+          <h1>Accelerate the work.<br>Keep the accountability.</h1>
+          <p class="lead">Apply AI where it adds practical value, with human review and traceable evidence.</p>
         </div>
       </div>
-      <div class="container">
-        <div class="category-pills" id="categoryPills"></div>
-        <div class="skill-grid" id="skillGrid"></div>
+      <div class="wrap ai section-pad">
+        <div class="ai-heading">
+          <div class="ai-assurance">
+            <span class="small-label">Assurance for AI-enabled products</span>
+            <h3>Evaluate the behaviour that matters.</h3>
+            <p>Define scenarios for output quality, workflow behaviour, guardrails and failure handling, with clear acceptance criteria.</p>
+          </div>
+        </div>
+        <div class="ai-steps">
+          <div class="quality-point">
+            <span class="quality-number">01.</span>
+            <div>
+              <h3>Identify useful applications</h3>
+              <p>Focus AI assistance on time-consuming work: scenario design, automation development, maintenance and defect analysis.</p>
+            </div>
+          </div>
+          <div class="quality-point">
+            <span class="quality-number">02.</span>
+            <div>
+              <h3>Review before execution</h3>
+              <p>Review findings and candidate journeys before creating scripts. Engineers check the outputs and retain ownership of quality decisions.</p>
+            </div>
+          </div>
+          <div class="quality-point">
+            <span class="quality-number">03.</span>
+            <div>
+              <h3>Measure the value</h3>
+              <p>Assess time saved alongside rework, coverage and suite reliability. Use the evidence to decide where AI adds value.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- SKILL DETAIL -->
-    <section id="skillDetailPage" class="page">
-      <div class="hero compact">
-        <div class="container">
-          <p class="breadcrumb"><button data-nav="skills">&larr; Explore skills</button></p>
-          <p class="eyebrow" id="skillDetailCategory">Category</p>
-          <h1 id="skillDetailTitle">Skill name</h1>
-          <p class="lead" id="skillDetailDescription"></p>
+    <!-- ================= GROWTH HUB (shared by all tracks) ================= -->
+    <section class="tabpanel" id="panel-hub" role="tabpanel" aria-labelledby="tab-hub" tabindex="-1" hidden>
+      <div class="tabbar tabbar-sub">
+        <div class="wrap tabbar-scroll" id="hubTabList" role="tablist" aria-label="Growth Hub sections"></div>
+      </div>
+
+      <!-- HUB: OVERVIEW -->
+      <div class="tabpanel hub-panel" id="hubpanel-home" role="tabpanel" aria-labelledby="hubtab-home" tabindex="-1">
+        <div class="hero compact">
+          <div class="wrap">
+            <div class="eyebrow" id="homeEyebrow">QA growth hub</div>
+            <h1 id="homeHeading">Confidence in testing, built one skill at a time.</h1>
+            <p class="lead" id="homeLead">Every course, video and reference in this hub is pulled directly from Nikao's Complete QA &amp; Test Engineering Learning Roadmap — nothing added, nothing invented.</p>
+          </div>
+        </div>
+        <div class="wrap section-pad">
+          <div class="stats" id="stats"></div>
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">Start exploring</div>
+              <h2>Learning categories</h2>
+              <p>Choose an area to see its skills and the resources behind each one.</p>
+            </div>
+          </div>
+          <div class="skill-grid" id="homeCategories"></div>
+        </div>
+
+        <section class="approach" id="homeValueSection">
+          <div class="wrap">
+            <div class="eyebrow">Why this exists</div>
+            <h2>A single, honest map of where to learn testing — instead of forty open tabs.</h2>
+            <div class="pillars">
+              <div>
+                <span>01.</span>
+                <h3>Source-backed</h3>
+                <p>Every resource traces back to the roadmap document — no filler links, no guesses.</p>
+              </div>
+              <div>
+                <span>02.</span>
+                <h3>Direct access</h3>
+                <p>Cards open the real course, video or article in a new tab. No sign-up wall in the way.</p>
+              </div>
+              <div>
+                <span>03.</span>
+                <h3>Free &amp; premium, side by side</h3>
+                <p>Every entry is labelled clearly, so you can choose based on budget, not guesswork.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- HUB: EXPLORE SKILLS -->
+      <div class="tabpanel hub-panel" id="hubpanel-skills" role="tabpanel" aria-labelledby="hubtab-skills" tabindex="-1" hidden>
+        <div class="hero compact">
+          <div class="wrap">
+            <div class="eyebrow">Skills catalogue</div>
+            <h1>Explore skills</h1>
+            <p class="lead" id="skillsLead">Discover the areas of testing that interest you. Choose a category, then open a skill to see its resources.</p>
+          </div>
+        </div>
+        <div class="wrap section-pad">
+          <div class="category-pills" id="categoryPills"></div>
+          <div class="skill-grid" id="skillGrid"></div>
         </div>
       </div>
-      <div class="container" id="skillDetailBody" style="padding-bottom:var(--space-8)"></div>
+
+      <!-- HUB: SKILL DETAIL (reached from cards; not a sub-tab) -->
+      <div class="tabpanel hub-panel" id="hubpanel-skillDetail" role="tabpanel" aria-labelledby="hubtab-skills" tabindex="-1" hidden>
+        <div class="hero compact">
+          <div class="wrap">
+            <p class="breadcrumb"><button type="button" data-hub-tab="skills">&larr; Explore skills</button></p>
+            <div class="eyebrow" id="skillDetailCategory">Category</div>
+            <h1 id="skillDetailTitle">Skill name</h1>
+            <p class="lead" id="skillDetailDescription"></p>
+          </div>
+        </div>
+        <div class="wrap section-pad" id="skillDetailBody"></div>
+      </div>
+
+      <!-- HUB: LEARNING LIBRARY -->
+      <div class="tabpanel hub-panel" id="hubpanel-library" role="tabpanel" aria-labelledby="hubtab-library" tabindex="-1" hidden>
+        <div class="hero compact">
+          <div class="wrap">
+            <div class="eyebrow">Curated roadmap</div>
+            <h1>Learning library</h1>
+            <p class="lead" id="libraryLead">Search and filter all 60 verified courses, videos and references in one place.</p>
+          </div>
+        </div>
+        <div class="wrap section-pad">
+          <div class="toolbar">
+            <input class="field" id="resourceSearch" type="search" placeholder="Search title, provider or skill" aria-label="Search resources">
+            <select class="field" id="categoryFilter" aria-label="Filter by category"></select>
+            <select class="field" id="typeFilter" aria-label="Filter by resource type">
+              <option value="">All resource types</option>
+              <option value="course">Courses</option>
+              <option value="video">Videos</option>
+              <option value="article">References</option>
+            </select>
+            <select class="field" id="costFilter" aria-label="Filter by cost">
+              <option value="">Free and premium</option>
+              <option value="free">Free only</option>
+              <option value="premium">Premium only</option>
+            </select>
+          </div>
+          <p class="results-line" id="resultsLine"></p>
+          <div class="resource-grid" id="resourceGrid"></div>
+        </div>
+      </div>
+
+      <!-- HUB: LEARNING PATHS -->
+      <div class="tabpanel hub-panel" id="hubpanel-paths" role="tabpanel" aria-labelledby="hubtab-paths" tabindex="-1" hidden>
+        <div class="hero compact">
+          <div class="wrap">
+            <div class="eyebrow" id="pathsEyebrow">Quick reference</div>
+            <h1>Choose your learning path</h1>
+            <p class="lead" id="pathsLead">Three experience-based routes, taken directly from the roadmap's quick-reference section.</p>
+          </div>
+        </div>
+        <div class="wrap section-pad">
+          <div class="path-grid" id="pathGrid"></div>
+        </div>
+      </div>
+
+      <!-- HUB: CERTIFICATIONS -->
+      <div class="tabpanel hub-panel" id="hubpanel-certifications" role="tabpanel" aria-labelledby="hubtab-certifications" tabindex="-1" hidden>
+        <div class="hero compact">
+          <div class="wrap">
+            <div class="eyebrow" id="certsEyebrow">Researched, not guessed</div>
+            <h1>Certifications worth pursuing</h1>
+            <p class="lead" id="certsLead">One or two credentials per category, checked against official certifying-body sites (ISTQB, OffSec, EC-Council, Postman, ICAgile) rather than course marketplaces. Each links to the certifying body directly, not a training vendor.</p>
+          </div>
+        </div>
+        <div class="wrap section-pad">
+          <div id="certificationGroups"></div>
+        </div>
+      </div>
+
+      <!-- HUB: PLATFORMS -->
+      <div class="tabpanel hub-panel" id="hubpanel-platforms" role="tabpanel" aria-labelledby="hubtab-platforms" tabindex="-1" hidden>
+        <div class="hero compact">
+          <div class="wrap">
+            <div class="eyebrow">Bonus</div>
+            <h1>Comprehensive learning platforms</h1>
+            <p class="lead">Broader platforms worth bookmarking, beyond any single skill.</p>
+          </div>
+        </div>
+        <div class="wrap section-pad">
+          <div class="section-label"><h3>Free platforms</h3></div>
+          <div class="platform-grid" id="freePlatformGrid"></div>
+          <div class="section-label" id="premiumPlatformLabel"><h3>Premium subscriptions</h3></div>
+          <div class="platform-grid" id="premiumPlatformGrid"></div>
+        </div>
+      </div>
     </section>
 
-    <!-- LIBRARY -->
-    <section id="libraryPage" class="page">
-      <div class="hero compact">
-        <div class="container">
-          <p class="eyebrow">Curated roadmap</p>
-          <h1>Learning library</h1>
-          <p class="lead" id="libraryLead">Search and filter all 60 verified courses, videos and references in one place.</p>
+    <!-- CONTACT BAND — showcase tabs only -->
+    <section class="contact" id="contactBand">
+      <div class="wrap contact-inner">
+        <div>
+          <div class="eyebrow">Let&rsquo;s talk</div>
+          <h2>Confidence for<br>complex change.</h2>
+          <p>An independent review. Embedded QA leadership.<br>Hands-on testing and automation.</p>
         </div>
-      </div>
-      <div class="container">
-        <div class="toolbar">
-          <input class="field" id="resourceSearch" type="search" placeholder="Search title, provider or skill">
-          <select class="field" id="categoryFilter" aria-label="Filter by category"></select>
-          <select class="field" id="typeFilter" aria-label="Filter by resource type">
-            <option value="">All resource types</option>
-            <option value="course">Courses</option>
-            <option value="video">Videos</option>
-            <option value="article">References</option>
-          </select>
-          <select class="field" id="costFilter" aria-label="Filter by cost">
-            <option value="">Free and premium</option>
-            <option value="free">Free only</option>
-            <option value="premium">Premium only</option>
-          </select>
-        </div>
-        <p class="results-line" id="resultsLine"></p>
-        <div class="resource-grid" id="resourceGrid"></div>
-      </div>
-    </section>
-
-    <!-- LEARNING PATHS -->
-    <section id="pathsPage" class="page">
-      <div class="hero compact">
-        <div class="container">
-          <p class="eyebrow" id="pathsEyebrow">Quick reference</p>
-          <h1>Choose your learning path</h1>
-          <p class="lead" id="pathsLead">Three experience-based routes, taken directly from the roadmap's quick-reference section.</p>
-        </div>
-      </div>
-      <div class="container">
-        <div class="path-grid" id="pathGrid" style="margin-bottom:var(--space-8)"></div>
-      </div>
-    </section>
-
-    <!-- CERTIFICATIONS -->
-    <section id="certificationsPage" class="page">
-      <div class="hero compact">
-        <div class="container">
-          <p class="eyebrow" id="certsEyebrow">Researched, not guessed</p>
-          <h1>Certifications worth pursuing</h1>
-          <p class="lead" id="certsLead">One or two credentials per category, checked against official certifying-body sites (ISTQB, OffSec, EC-Council, Postman, ICAgile) rather than course marketplaces. Each links to the certifying body directly, not a training vendor.</p>
-        </div>
-      </div>
-      <div class="container">
-        <div id="certificationGroups"></div>
-      </div>
-    </section>
-
-    <!-- PLATFORMS -->
-    <section id="platformsPage" class="page">
-      <div class="hero compact">
-        <div class="container">
-          <p class="eyebrow">Bonus</p>
-          <h1>Comprehensive learning platforms</h1>
-          <p class="lead">Broader platforms worth bookmarking, beyond any single skill.</p>
-        </div>
-      </div>
-      <div class="container">
-        <div class="section-label"><h3>Free platforms</h3></div>
-        <div class="platform-grid" id="freePlatformGrid"></div>
-        <div class="section-label" id="premiumPlatformLabel"><h3>Premium subscriptions</h3></div>
-        <div class="platform-grid" id="premiumPlatformGrid" style="margin-bottom:var(--space-8)"></div>
+        <a class="button purple" href="https://nika-o.com/contact-us/" target="_blank" rel="noopener">Talk to Nikao</a>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div class="container">
+    <div class="wrap">
       <div class="footer-grid">
         <div class="footer-col">
-          <a class="brand" href="#home" data-nav="home">
+          <a class="brand" href="#overview" data-nav-home>
             <img src="assets/nikao-logomark.png" alt="">
             <span>nikao</span>
           </a>
