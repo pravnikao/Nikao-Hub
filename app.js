@@ -42,8 +42,8 @@
     { id: "platforms",      label: "Platforms" }
   ];
 
-  const SITE_NAME = "Nikao Growth Hub";
-  const OVERVIEW_TITLE = "Quality Engineering & Assurance | Nikao";
+  const SITE_NAME = "Nikao Hub";
+  const OVERVIEW_TITLE = "Quality Engineering & Assurance | Nikao Hub";
   const OVERVIEW_DESCRIPTION = "Hands-on quality engineering for complex change. Explore Nikao’s assurance, testing, automation, integration and migration capabilities.";
   const HUB_DESCRIPTION = "Curated learning roadmaps for testing and engineering — courses, videos and references sourced from Nikao's learning roadmaps.";
 
