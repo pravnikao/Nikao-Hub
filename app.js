@@ -52,7 +52,7 @@
 
   // ---------------------------------------------------------------- helpers
   const qs = selector => document.querySelector(selector);
-  const qsa = selector => [...document.querySelectorAll(selector)];
+  const qsa = (selector, scope) => [...(scope || document).querySelectorAll(selector)];
   const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   }[char]));
@@ -235,6 +235,11 @@
     panel.classList.remove("is-entering");
     void panel.offsetWidth; // restart the animation
     panel.classList.add("is-entering");
+    // Drop the class once it has played. A finished animation keeps the panel
+    // on its own compositing layer, which switches all its text to greyscale
+    // antialiasing and leaves it there for the life of the page.
+    window.clearTimeout(panel._enterTimer);
+    panel._enterTimer = window.setTimeout(() => panel.classList.remove("is-entering"), 260);
   }
 
   function currentTitle() {
@@ -688,6 +693,52 @@
     qs("#premiumPlatformGrid").hidden = !premium.length;
   }
 
+
+  // ================================================================ REVEAL
+  // Progressive enhancement. The markup is visible with no JS at all; the
+  // hiding rules are scoped to html.reveal-ready, which only this code adds.
+  // Each series plays once, the first time 25% of it is on screen, including
+  // when its tab is opened for the first time.
+  const REVEAL_STAGGER = { h: 140, v: 90, g: 60 };
+
+  function primeReveal() {
+    if (!("IntersectionObserver" in window)) return;   // no IO: leave it visible
+    document.documentElement.classList.add("reveal-ready");
+
+    qsa("[data-reveal]").forEach(series => {
+      const step = REVEAL_STAGGER[series.dataset.reveal] ?? 90;
+      qsa("[data-item]", series).forEach((item, i) => item.style.setProperty("--d", `${i * step}ms`));
+      // the connector is one 700ms draw split across its segments
+      const segs = qsa(".seg", series);
+      segs.forEach((seg, i) => seg.style.setProperty("--d", `${Math.round((700 / segs.length) * i)}ms`));
+      // circles fill as the line reaches them
+      qsa(".journey-dot, .aiq-dot", series).forEach((dot, i) =>
+        dot.style.setProperty("--d", `${Math.round((700 / Math.max(segs.length, 1)) * i)}ms`));
+    });
+
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const series = entry.target;
+        series.classList.add("is-in");
+        obs.unobserve(series);
+        // settle to the untransformed finished state (longest series is 1.2s)
+        window.setTimeout(() => series.classList.add("is-done"), 1300);
+      });
+    }, { threshold: 0.25 });
+
+    qsa("[data-reveal]").forEach(series => io.observe(series));
+
+    // Failsafe: a series that never reaches the threshold (a short viewport,
+    // a tall series) must not stay hidden. Reveal anything still waiting.
+    window.setTimeout(() => {
+      qsa("[data-reveal]:not(.is-in)").forEach(series => {
+        series.classList.add("is-in");
+        window.setTimeout(() => series.classList.add("is-done"), 1300);
+      });
+    }, 4000);
+  }
+
   // ---------------------------------------------------------------- track
   function loadTrack(id) {
     const next = tracks.find(item => item.id === id);
@@ -797,5 +848,6 @@
   // ---------------------------------------------------------------- boot
   loadTrack(tracks[0].id);
   renderAll();
+  primeReveal();
   applyRoute(location.hash, { push: false, quiet: true });
 })();
