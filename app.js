@@ -185,10 +185,26 @@
     });
   }
 
+  // Measures what is genuinely pinned right now. Desktop pins the header;
+  // mobile pins the primary tab bar, or the hub strip when there is no
+  // primary bar. Reading computed position keeps this honest across both.
   function stickyOffset() {
-    const header = qs(".site-header");
-    const bar = qs("#primaryTabBar");
-    return (header ? header.offsetHeight : 0) + (bar && !bar.hidden ? bar.offsetHeight : 0);
+    return [qs(".site-header"), qs("#primaryTabBar"), qs(".tabbar-sub")].reduce((sum, el) => {
+      if (!el || el.hidden || !el.offsetParent) return sum;
+      return getComputedStyle(el).position === "sticky" ? sum + el.offsetHeight : sum;
+    }, 0);
+  }
+
+  // Anchor jumps and scrollIntoView must clear the pinned bar. Mobile height
+  // varies with which bar is pinned, so set it from the measurement; on wider
+  // screens clear the inline value and let the stylesheet own it.
+  function syncScrollPadding() {
+    const root = document.documentElement;
+    if (window.matchMedia("(max-width: 700px)").matches) {
+      root.style.scrollPaddingTop = (stickyOffset() + 8) + "px";
+    } else {
+      root.style.removeProperty("scroll-padding-top");
+    }
   }
 
   function showPanels() {
@@ -278,6 +294,7 @@
     showPanels();
     // Measure the strips only once their panel is visible — a hidden bar is 0px wide.
     updateScrollHints();
+    syncScrollPadding();
     syncChrome();
 
     const hash = currentHash();
@@ -775,7 +792,7 @@
   window.addEventListener("hashchange", () => {
     if (location.hash !== currentHash()) applyRoute(location.hash, { push: false });
   });
-  window.addEventListener("resize", updateScrollHints);
+  window.addEventListener("resize", () => { updateScrollHints(); syncScrollPadding(); });
 
   // ---------------------------------------------------------------- boot
   loadTrack(tracks[0].id);
