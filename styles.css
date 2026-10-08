@@ -202,7 +202,7 @@ h1, h2, h3, h4, p { margin-top: 0; }
 }
 .hero > * { position: relative; }
 .hero.compact { padding: var(--space-8) 0; }
-.hero.compact h1, .hero.compact .banner-title { margin-bottom: var(--space-4); }
+.hero.compact h1 { margin-bottom: var(--space-4); }
 .hero.compact .lead { margin-bottom: 0; }
 
 .eyebrow {
@@ -455,7 +455,6 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
    only ever text on dark, or a fill behind an ink outline. */
 :root { --flow: #009570; }
 
-.banner-title { font-size: clamp(2.3rem, 4.3vw, 3.5rem); line-height: 1.23; letter-spacing: -1.6px; margin-bottom: 26px; }
 .eyebrow-ink { color: var(--ink); }
 
 .connected { background: var(--pale); padding: var(--space-8) 0; }
