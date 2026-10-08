@@ -221,6 +221,9 @@ h2 {
   letter-spacing: -1px; font-weight: var(--weight-bold); margin-bottom: 20px;
 }
 h3 { font-size: var(--text-h3); line-height: 1.4; letter-spacing: -.4px; font-weight: var(--weight-bold); margin-bottom: 18px; }
+/* Component headings are promoted a level for the document outline.
+   .ttl pins the h3 typography so the rendered result is unchanged. */
+.ttl { font-size: var(--text-h3); line-height: 1.4; letter-spacing: -.4px; font-weight: var(--weight-bold); margin-bottom: 18px; }
 .teal { color: var(--teal); }
 .green { color: var(--lime); }
 
@@ -325,7 +328,7 @@ details li { margin: 8px 0; }
 .page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-6); margin: var(--space-8) 0 var(--space-5); }
 .page-header p { margin-bottom: 0; color: var(--fg-2); }
 .section-label { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-7) 0 var(--space-5); }
-.section-label h3 { font-size: var(--text-h3); margin-bottom: 0; }
+.section-label .ttl { font-size: var(--text-h3); margin-bottom: 0; }
 .step-badge {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 30px; height: 30px; border-radius: var(--radius);
@@ -353,7 +356,7 @@ details li { margin: 8px 0; }
 .skill-card[data-accent="teal"]  { border-top-color: var(--teal); }
 .skill-card[data-accent="lime"]  { border-top-color: var(--lime); }
 .card-kicker { font-size: 22px; font-weight: var(--weight-bold); color: var(--blue); line-height: 1; }
-.skill-card h3 { font-size: 19px; margin-bottom: 0; }
+.skill-card .ttl { font-size: 19px; margin-bottom: 0; }
 .skill-card p { font-size: 14px; flex: 1; margin-bottom: 0; color: var(--fg-2); }
 .card-link { font-size: 14px; font-weight: var(--weight-bold); color: var(--green-ink); }
 button.card-link { background: none; border: none; padding: 0; text-align: left; }
@@ -396,7 +399,7 @@ button.card-link { background: none; border: none; padding: 0; text-align: left;
 .badge.mandatory { background: #c83c281f; color: #a8321f; border-color: transparent; }
 button.badge { cursor: pointer; }
 button.badge:hover { border-color: var(--blue); color: var(--blue); }
-.resource-card h3 { font-size: 17px; margin-bottom: 0; }
+.resource-card .ttl { font-size: 17px; margin-bottom: 0; }
 .resource-card .provider { font-size: 14px; color: var(--green-ink); font-weight: var(--weight-bold); }
 .resource-card .meta-line { font-size: var(--text-caption); color: var(--fg-2); margin-top: auto; margin-bottom: 0; }
 .resource-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); }
@@ -404,7 +407,7 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
 /* Learning paths */
 .path-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
 .path-card { background: var(--purple); color: #fff; border-radius: var(--radius); border-top: 3px solid var(--lime); padding: var(--space-6); }
-.path-card h3 { font-size: 22px; margin-bottom: var(--space-5); }
+.path-card .ttl { font-size: 22px; margin-bottom: var(--space-5); }
 .path-card .badge { background: none; border-color: var(--hairline-inverse); color: var(--fg-inverse-muted); }
 .path-card .badge:hover { color: #fff; border-color: #fff; }
 .path-empty { font-size: 14px; color: var(--fg-inverse-muted); }
@@ -417,7 +420,7 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
 
 /* Certifications */
 .cert-group-header { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-7) 0 var(--space-5); }
-.cert-group-header h3 { margin-bottom: 0; }
+.cert-group-header .ttl { margin-bottom: 0; }
 .cert-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
 .cert-card {
   background: var(--pale); border-top: 3px solid var(--purple); border-radius: var(--radius);
@@ -426,7 +429,7 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
 .cert-card[data-accent="ocean"] { border-top-color: var(--blue); }
 .cert-card[data-accent="teal"]  { border-top-color: var(--teal); }
 .cert-card[data-accent="lime"]  { border-top-color: var(--lime); }
-.cert-card h4 { font-size: 18px; font-weight: var(--weight-bold); line-height: 1.35; margin-bottom: 0; }
+.cert-card .ttl { font-size: 18px; font-weight: var(--weight-bold); line-height: 1.35; letter-spacing: normal; margin-bottom: 0; }
 .cert-card .provider { font-size: 14px; color: var(--green-ink); font-weight: var(--weight-bold); }
 .cert-card p { font-size: 14px; color: var(--fg-2); margin-bottom: 0; }
 .cert-level { align-self: flex-start; }
@@ -438,7 +441,7 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
   background: var(--pale); border-top: 3px solid var(--teal); border-radius: var(--radius);
   padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);
 }
-.platform-card h3 { font-size: 18px; margin-bottom: 0; }
+.platform-card .ttl { font-size: 18px; margin-bottom: 0; }
 .platform-card p { font-size: 14px; color: var(--fg-2); flex: 1; margin-bottom: 0; }
 .platform-card .cost { font-size: var(--text-caption); font-weight: var(--weight-bold); color: var(--green-ink); letter-spacing: .6px; }
 
@@ -446,7 +449,7 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
   grid-column: 1 / -1; text-align: center; padding: var(--space-8) var(--space-5);
   background: var(--pale); border-radius: var(--radius); border-top: 3px solid var(--hairline-strong);
 }
-.empty-state h3 { margin-bottom: var(--space-2); }
+.empty-state .ttl { margin-bottom: var(--space-2); }
 .empty-state p { margin-bottom: 0; color: var(--fg-2); }
 
 /* ================= OVERVIEW: CONNECTED ASSURANCE ================= */
@@ -544,7 +547,7 @@ button.badge:hover { border-color: var(--blue); color: var(--blue); }
 .aiq-band strong { color: var(--lime); font-size: 14px; }
 .aiq-band span { color: var(--fg-inverse-muted); font-size: 14px; }
 .aiq-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-7); margin-top: var(--space-7); }
-.aiq-cols h3 { font-size: 18px; margin-bottom: var(--space-2); }
+.aiq-cols .ttl { font-size: 18px; margin-bottom: var(--space-2); }
 .aiq-cols p { font-size: var(--text-body-sm); margin-bottom: 0; }
 
 /* ================= REVEAL ================= */
@@ -618,7 +621,8 @@ html.reveal-ready [data-reveal].is-done .aiq-dot {
 .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-6); }
 .site-footer .brand img { height: 32px; width: auto; }
 .site-footer .brand span { font-size: 26px; color: #fff; font-weight: var(--weight-bold); }
-.footer-heading { color: #fff; font-size: 16px; font-weight: var(--weight-bold); margin: 0 0 var(--space-3); }
+/* promoted from h4 for the document outline; keeps the h4 metrics */
+.footer-heading { color: #fff; font-size: 16px; font-weight: var(--weight-bold); line-height: 1.65; letter-spacing: normal; margin: 0 0 var(--space-3); }
 .footer-address { color: var(--fg-inverse-muted); font-size: 14px; line-height: 1.6; margin-bottom: 0; }
 .footer-icon { color: var(--teal); vertical-align: -3px; margin-right: var(--space-2); }
 .footer-contact-link { display: inline-flex; align-items: center; color: var(--fg-inverse-muted); font-size: 14px; }

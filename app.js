@@ -405,12 +405,12 @@
 
   function renderHomeCategories() {
     qs("#homeCategories").innerHTML = categories.map(category => `
-      <article class="skill-card" tabindex="0" role="button" data-accent="${category.accent}" data-category-open="${escapeHtml(category.name)}">
+      <div class="skill-card" tabindex="0" role="button" data-accent="${category.accent}" data-category-open="${escapeHtml(category.name)}">
         <div class="card-kicker">${pad2(category.displayOrder)}.</div>
-        <h3>${escapeHtml(category.name)}</h3>
+        <h3 class="ttl">${escapeHtml(category.name)}</h3>
         <p>${escapeHtml(category.description)}</p>
         <span class="card-link">${category.skills.length} skills &rarr;</span>
-      </article>
+      </div>
     `).join("");
   }
 
@@ -434,13 +434,13 @@
 
     qs("#skillGrid").innerHTML = visibleCategories.flatMap(category =>
       category.skills.map((skill, index) => `
-        <article class="skill-card" tabindex="0" role="button" data-accent="${category.accent}"
+        <div class="skill-card" tabindex="0" role="button" data-accent="${category.accent}"
           data-skill-slug="${slugify(skill.name)}">
           <div class="card-kicker">${pad2(index + 1)}.</div>
-          <h3>${escapeHtml(skill.name)}</h3>
+          <h2 class="ttl">${escapeHtml(skill.name)}</h2>
           <p>${escapeHtml(skillSummary(skill))}</p>
           <span class="card-link">View skill details &rarr;</span>
-        </article>
+        </div>
       `)
     ).join("");
   }
@@ -456,7 +456,7 @@
       + (resource.mandatory ? `<span class="badge mandatory">Mandatory</span>` : "");
   }
 
-  function resourceCard(resource) {
+  function resourceCard(resource, level = 2) {
     const provider = resource.provider || resource.section;
     return `
       <article class="resource-card">
@@ -464,7 +464,7 @@
           ${resourceBadges(resource)}
         </div>
         ${provider ? `<div class="provider">${escapeHtml(provider)}</div>` : ""}
-        <h3>${escapeHtml(resource.title)}</h3>
+        <h${level} class="ttl">${escapeHtml(resource.title)}</h${level}>
         <p class="meta-line">${escapeHtml(resource.skill)}${resource.category ? " &middot; " + escapeHtml(resource.category) : ""}</p>
         <div class="resource-actions">
           <a class="action-button" href="${escapeHtml(resource.url || "#")}" target="_blank" rel="noopener noreferrer">Start learning</a>
@@ -492,14 +492,14 @@
         sectionsHtml = `
           <div class="section-label">
             <span class="step-badge">1</span>
-            <h3>Resources</h3>
+            <h2 class="ttl">Resources</h2>
           </div>
           <div class="resource-grid">
-            ${skill.resources.map(resourceCard).join("")}
+            ${skill.resources.map(r => resourceCard(r, 3)).join("")}
           </div>
         `;
       } else {
-        sectionsHtml = `<div class="empty-state"><h3>No resources yet</h3><p>This skill is listed in the roadmap but has no resources recorded against it yet.</p></div>`;
+        sectionsHtml = `<div class="empty-state"><h2 class="ttl">No resources yet</h2><p>This skill is listed in the roadmap but has no resources recorded against it yet.</p></div>`;
       }
     } else {
       const sections = [
@@ -515,10 +515,10 @@
         return `
           <div class="section-label">
             <span class="step-badge">${badgeNumber}</span>
-            <h3>${section.label}</h3>
+            <h2 class="ttl">${section.label}</h2>
           </div>
           <div class="resource-grid">
-            ${items.map(resourceCard).join("")}
+            ${items.map(r => resourceCard(r, 3)).join("")}
           </div>
         `;
       }).join("");
@@ -531,7 +531,7 @@
     const relatedCertsHtml = relatedCerts.length ? `
       <div class="section-label">
         <span class="step-badge">${badgeNumber + 1}</span>
-        <h3>Related certifications</h3>
+        <h2 class="ttl">Related certifications</h2>
       </div>
       <div class="badges">
         ${relatedCerts.map(item => `<button type="button" class="badge" data-hub-tab="certifications">${escapeHtml(item.name)}</button>`).join("")}
@@ -580,8 +580,8 @@
 
     qs("#resultsLine").textContent = `${filtered.length} resource${filtered.length === 1 ? "" : "s"} found`;
     qs("#resourceGrid").innerHTML = filtered.length
-      ? filtered.map(resourceCard).join("")
-      : `<div class="empty-state"><h3>No resources match these filters</h3><p>Try clearing one or more filters.</p></div>`;
+      ? filtered.map(resource => resourceCard(resource)).join("")
+      : `<div class="empty-state"><h2 class="ttl">No resources match these filters</h2><p>Try clearing one or more filters.</p></div>`;
   }
 
   function renderCertifications() {
@@ -589,14 +589,14 @@
     qs("#certificationGroups").innerHTML = groups.map(group => `
       <div class="cert-group-header">
         <span class="step-badge">${escapeHtml(group.category.split(" ")[0][0])}</span>
-        <h3>${escapeHtml(group.category)}</h3>
+        <h2 class="ttl">${escapeHtml(group.category)}</h2>
       </div>
       <div class="cert-grid">
         ${group.items.map(item => `
           <article class="cert-card" data-accent="${group.accent}">
             <span class="badge cert-level">${escapeHtml(item.level)}</span>
             <div class="provider">${escapeHtml(item.body)}</div>
-            <h4>${escapeHtml(item.name)}</h4>
+            <h3 class="ttl">${escapeHtml(item.name)}</h3>
             <p>${escapeHtml(item.description)}</p>
             ${(item.requiredSkills || []).length ? `
               <div class="badges skill-tags">
@@ -623,7 +623,7 @@
   function renderPaths() {
     qs("#pathGrid").innerHTML = (track.learningPaths || []).map(path => `
       <article class="path-card">
-        <h3>${escapeHtml(path.level || "Learning path")}</h3>
+        <h2 class="ttl">${escapeHtml(path.level || "Learning path")}</h2>
         ${!(path.steps || []).length ? `<p class="path-empty">No resources tagged at this level yet.</p>` : ""}
         ${(path.steps || []).map((step, index) => {
           const title = step.title || step;
@@ -675,7 +675,7 @@
   function platformCard(platform, extra) {
     return `
       <article class="platform-card">
-        <h3>${escapeHtml(platform.name)}</h3>
+        <h3 class="ttl">${escapeHtml(platform.name)}</h3>
         ${extra ? `<div class="cost">${escapeHtml(extra)}</div>` : ""}
         <p>${escapeHtml(platform.description || platform.bestFor || "")}</p>
         <div class="resource-actions">
