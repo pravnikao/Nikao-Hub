@@ -155,6 +155,37 @@
         aria-controls="hubpanel-${tab.id}" aria-selected="false" tabindex="-1"
         data-hub-tab="${tab.id}">${escapeHtml(tab.label)}</button>
     `).join("");
+
+    syncPanelWiring();
+  }
+
+  // A track with a single primary tab renders no tab buttons, so the static
+  // role="tabpanel" and aria-labelledby="tab-…" that every panel carries would
+  // point at elements that never exist. Keep the wiring only where its tab is
+  // really there; elsewhere drop both, leaving a plain section.
+  function syncPanelWiring() {
+    qsa("#main > .tabpanel").forEach(panel => {
+      const tabId = panel.id.replace(/^panel-/, "");
+      if (document.getElementById(`tab-${tabId}`)) {
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", `tab-${tabId}`);
+      } else {
+        panel.removeAttribute("role");
+        panel.removeAttribute("aria-labelledby");
+      }
+    });
+  }
+
+  // With no tab to name it, the hub takes its name from the heading on show,
+  // so the region is still announced with something meaningful.
+  function labelHubRegion() {
+    const hub = qs("#panel-hub");
+    if (!hub || hub.getAttribute("role") === "tabpanel") return;   // named by its tab
+    const sub = qsa(".hub-panel").find(panel => !panel.hidden);
+    const heading = sub && sub.querySelector("h1");
+    if (!heading) { hub.removeAttribute("aria-labelledby"); return; }
+    if (!heading.id) heading.id = `heading-${sub.id}`;
+    hub.setAttribute("aria-labelledby", heading.id);
   }
 
   function syncTabStates() {
@@ -224,6 +255,7 @@
     });
 
     qs("#contactBand").hidden = !SHOWCASE_TABS.has(state.tab);
+    labelHubRegion();
   }
 
   function animatePanel() {
