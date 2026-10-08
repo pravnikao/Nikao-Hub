@@ -710,46 +710,142 @@
   // ================================================================ REVEAL
   // Progressive enhancement. The markup is visible with no JS at all; the
   // hiding rules are scoped to html.reveal-ready, which only this code adds.
-  // Each series plays once, the first time 25% of it is on screen, including
-  // when its tab is opened for the first time.
-  const REVEAL_STAGGER = { h: 140, v: 90, g: 60 };
+  //
+  // Pacing lives in one place: --reveal-speed in styles.css. The base values
+  // below are milliseconds at speed 1 and are multiplied by it, in CSS for
+  // the animations and here for the bookkeeping, so the two never drift.
+  // Each kind has one target length at speed 1. Series of the same kind hold
+  // different numbers of items (the pillars have three and no connector; the
+  // journey has four and a connector), so the per-element offsets are derived
+  // from the target rather than fixed, and every series of a kind finishes
+  // together.
+  const REVEAL_BASE = {
+    h: { target: 1300, item: 420, dot: 380 },
+    v: { target: 920,  item: 400, dot: 0 },
+    g: { target: 520,  item: 340, dot: 0 }
+  };
+
+  const revealSpeed = () => {
+    const raw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--reveal-speed"));
+    return Number.isFinite(raw) && raw > 0 ? raw : 1;
+  };
+
+  // Spread n elements of the given duration across the target window.
+  const stepFor = (n, target, duration) => (n > 1 ? (target - duration) / (n - 1) : 0);
+
+  function primeRevealSeries(series) {
+    const base = REVEAL_BASE[series.dataset.reveal] || REVEAL_BASE.v;
+    const items = qsa("[data-item]", series);
+    const segs = qsa(".seg", series);
+    const dots = qsa(".journey-dot, .aiq-dot", series);
+
+    // --d is a plain number of milliseconds; the stylesheet adds the unit and
+    // the speed multiplier.
+    const itemStep = stepFor(items.length, base.target, base.item);
+    items.forEach((el, i) => el.style.setProperty("--d", String(Math.round(i * itemStep))));
+
+    // The line reaches each circle as that circle fills, so both share a step
+    // and each segment takes exactly one step to draw.
+    const dotStep = stepFor(dots.length, base.target, base.dot);
+    dots.forEach((el, i) => el.style.setProperty("--d", String(Math.round(i * dotStep))));
+    segs.forEach((el, i) => el.style.setProperty("--d", String(Math.round(i * dotStep))));
+    if (segs.length) series.style.setProperty("--rev-seg", String(Math.round(dotStep)));
+
+    series._revealBase = base.target;
+  }
+
+  function seriesDuration(series) {
+    return Math.round((series._revealBase || 0) * revealSpeed());
+  }
+
+  // Play from the first frame. Clearing the classes drops the elements back to
+  // their pre-animation state; the reflow between clear and re-add is what
+  // makes the browser restart the animations rather than continue them.
+  function playReveal(series) {
+    if (reducedMotion()) { series.classList.add("is-in", "is-done"); return; }
+    if (series._revealPlaying) return;
+    window.clearTimeout(series._revealTimer);
+    series.classList.remove("is-in", "is-done");
+    void series.offsetWidth;
+    series._revealPlaying = true;
+    series.classList.add("is-in");
+    series._revealTimer = window.setTimeout(() => {
+      series.classList.add("is-done");
+      series._revealPlaying = false;          // re-armed for the next hover
+    }, seriesDuration(series) + 60);
+  }
+
+  let revealObserver = null;
+
+  function armRevealObserver() {
+    if (revealObserver) revealObserver.disconnect();
+    // A series taller than the viewport can never reach 0.4, so also accept a
+    // visible slice of at least half the viewport.
+    revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const tallEnough = entry.intersectionRect.height >= window.innerHeight * 0.5;
+        if (entry.intersectionRatio >= 0.4 || (entry.isIntersecting && tallEnough)) {
+          playReveal(entry.target);
+        }
+      });
+    }, { threshold: [0, 0.1, 0.2, 0.3, 0.4] });
+    qsa("[data-reveal]").forEach(series => revealObserver.observe(series));
+  }
+
+  // Every load, and every restore from the back/forward cache, starts over.
+  // Nothing is stored anywhere; the state lives on the elements.
+  function resetAllReveals() {
+    qsa("[data-reveal]").forEach(series => {
+      window.clearTimeout(series._revealTimer);
+      series._revealPlaying = false;
+      series.classList.remove("is-in", "is-done");
+    });
+    void document.body.offsetWidth;
+  }
+
+  function startReveal() {
+    if (reducedMotion()) {
+      qsa("[data-reveal]").forEach(series => series.classList.add("is-in", "is-done"));
+      return;
+    }
+    resetAllReveals();
+    armRevealObserver();
+    // Last resort for a series the observer can never satisfy.
+    window.setTimeout(() => qsa("[data-reveal]:not(.is-in)").forEach(playReveal), 6000);
+  }
 
   function primeReveal() {
     if (!("IntersectionObserver" in window)) return;   // no IO: leave it visible
     document.documentElement.classList.add("reveal-ready");
+    qsa("[data-reveal]").forEach(primeRevealSeries);
 
+    // Hold until the webfont has settled, so the first frame is not swapped
+    // out from under the viewer, then give them a moment to look.
+    const begin = () => window.setTimeout(startReveal, 300);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(begin);
+    else begin();
+
+    // Replay on hover (mouse or pen) and on tap. Ignored while a series is
+    // still playing; playReveal re-arms itself when it finishes. These are
+    // passive listeners on a non-interactive container: no tab stop, no
+    // cursor change, no focus ring.
+    const replay = event => {
+      if (reducedMotion()) return;
+      const series = event.target.closest("[data-reveal]");
+      if (series) playReveal(series);
+    };
     qsa("[data-reveal]").forEach(series => {
-      const step = REVEAL_STAGGER[series.dataset.reveal] ?? 90;
-      qsa("[data-item]", series).forEach((item, i) => item.style.setProperty("--d", `${i * step}ms`));
-      // the connector is one 700ms draw split across its segments
-      const segs = qsa(".seg", series);
-      segs.forEach((seg, i) => seg.style.setProperty("--d", `${Math.round((700 / segs.length) * i)}ms`));
-      // circles fill as the line reaches them
-      qsa(".journey-dot, .aiq-dot", series).forEach((dot, i) =>
-        dot.style.setProperty("--d", `${Math.round((700 / Math.max(segs.length, 1)) * i)}ms`));
+      series.addEventListener("pointerenter", e => {
+        if (e.pointerType === "mouse" || e.pointerType === "pen") replay(e);
+      });
+      series.addEventListener("pointerup", e => {
+        if (e.pointerType === "touch") replay(e);
+      });
     });
 
-    const io = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const series = entry.target;
-        series.classList.add("is-in");
-        obs.unobserve(series);
-        // settle to the untransformed finished state (longest series is 1.2s)
-        window.setTimeout(() => series.classList.add("is-done"), 1300);
-      });
-    }, { threshold: 0.25 });
-
-    qsa("[data-reveal]").forEach(series => io.observe(series));
-
-    // Failsafe: a series that never reaches the threshold (a short viewport,
-    // a tall series) must not stay hidden. Reveal anything still waiting.
-    window.setTimeout(() => {
-      qsa("[data-reveal]:not(.is-in)").forEach(series => {
-        series.classList.add("is-in");
-        window.setTimeout(() => series.classList.add("is-done"), 1300);
-      });
-    }, 4000);
+    window.addEventListener("pageshow", event => {
+      if (event.persisted) startReveal();
+    });
   }
 
   // ---------------------------------------------------------------- track

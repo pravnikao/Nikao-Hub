@@ -50,6 +50,10 @@
   --container-max: 1320px;
   --radius: 2px;
 
+  /* Reveal pacing. One knob: every reveal duration and delay is a base
+     value multiplied by this. 1 = the base timings, 2.6 = shipped pace. */
+  --reveal-speed: 2.6;
+
   --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
   --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 72px;
 
@@ -573,11 +577,30 @@ html.reveal-ready [data-reveal="v"] .rev-rule { transform: scaleY(0); }
 html.reveal-ready [data-reveal="h"] .journey-dot,
 html.reveal-ready [data-reveal="h"] .aiq-dot { transform: scale(.85); }
 
-html.reveal-ready [data-reveal].is-in [data-item] { visibility: visible; animation: revUp .34s ease-out both; animation-delay: var(--d, 0ms); }
-html.reveal-ready [data-reveal].is-in .seg { animation: revX .234s ease-out both; animation-delay: var(--d, 0ms); }
-html.reveal-ready [data-reveal="v"].is-in .rev-rule { animation: revY .6s ease-out both; }
+/* Base durations per series kind; --d is the per-element offset in plain
+   milliseconds, set by the script. Both are scaled by the one knob. */
+[data-reveal="h"] { --rev-item: 420ms; }
+[data-reveal="v"] { --rev-item: 400ms; }
+[data-reveal="g"] { --rev-item: 340ms; }
+html.reveal-ready [data-reveal].is-in [data-item] {
+  visibility: visible;
+  animation: revUp calc(var(--rev-item) * var(--reveal-speed)) ease-out both;
+  animation-delay: calc(var(--d, 0) * 1ms * var(--reveal-speed));
+}
+/* --rev-seg is one connector step, set per series by the script so the line
+   draws continuously from circle to circle. */
+html.reveal-ready [data-reveal].is-in .seg {
+  animation: revX calc(var(--rev-seg, 300) * 1ms * var(--reveal-speed)) ease-out both;
+  animation-delay: calc(var(--d, 0) * 1ms * var(--reveal-speed));
+}
+html.reveal-ready [data-reveal="v"].is-in .rev-rule {
+  animation: revY calc(920ms * var(--reveal-speed)) ease-out both;
+}
 html.reveal-ready [data-reveal="h"].is-in .journey-dot,
-html.reveal-ready [data-reveal="h"].is-in .aiq-dot { animation: revPop .3s ease-out both; animation-delay: var(--d, 0ms); }
+html.reveal-ready [data-reveal="h"].is-in .aiq-dot {
+  animation: revPop calc(380ms * var(--reveal-speed)) ease-out both;
+  animation-delay: calc(var(--d, 0) * 1ms * var(--reveal-speed));
+}
 
 /* Once a series has played, drop the animation and the identity transform.
    A lingering transform keeps the element composited and switches its text
@@ -731,4 +754,6 @@ html.reveal-ready [data-reveal].is-done .aiq-dot {
   html.reveal-ready [data-reveal] .aiq-dot {
     opacity: 1 !important; transform: none !important; animation: none !important; visibility: visible !important;
   }
+  /* series are never interactive: no pointer affordance even with replay on */
+  [data-reveal] { cursor: auto; }
 }
