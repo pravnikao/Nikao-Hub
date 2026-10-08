@@ -52,7 +52,7 @@
 
   // ---------------------------------------------------------------- helpers
   const qs = selector => document.querySelector(selector);
-  const qsa = selector => [...document.querySelectorAll(selector)];
+  const qsa = (selector, scope) => [...(scope || document).querySelectorAll(selector)];
   const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   }[char]));
@@ -155,6 +155,37 @@
         aria-controls="hubpanel-${tab.id}" aria-selected="false" tabindex="-1"
         data-hub-tab="${tab.id}">${escapeHtml(tab.label)}</button>
     `).join("");
+
+    syncPanelWiring();
+  }
+
+  // A track with a single primary tab renders no tab buttons, so the static
+  // role="tabpanel" and aria-labelledby="tab-…" that every panel carries would
+  // point at elements that never exist. Keep the wiring only where its tab is
+  // really there; elsewhere drop both, leaving a plain section.
+  function syncPanelWiring() {
+    qsa("#main > .tabpanel").forEach(panel => {
+      const tabId = panel.id.replace(/^panel-/, "");
+      if (document.getElementById(`tab-${tabId}`)) {
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", `tab-${tabId}`);
+      } else {
+        panel.removeAttribute("role");
+        panel.removeAttribute("aria-labelledby");
+      }
+    });
+  }
+
+  // With no tab to name it, the hub takes its name from the heading on show,
+  // so the region is still announced with something meaningful.
+  function labelHubRegion() {
+    const hub = qs("#panel-hub");
+    if (!hub || hub.getAttribute("role") === "tabpanel") return;   // named by its tab
+    const sub = qsa(".hub-panel").find(panel => !panel.hidden);
+    const heading = sub && sub.querySelector("h1");
+    if (!heading) { hub.removeAttribute("aria-labelledby"); return; }
+    if (!heading.id) heading.id = `heading-${sub.id}`;
+    hub.setAttribute("aria-labelledby", heading.id);
   }
 
   function syncTabStates() {
@@ -224,6 +255,7 @@
     });
 
     qs("#contactBand").hidden = !SHOWCASE_TABS.has(state.tab);
+    labelHubRegion();
   }
 
   function animatePanel() {
@@ -235,6 +267,11 @@
     panel.classList.remove("is-entering");
     void panel.offsetWidth; // restart the animation
     panel.classList.add("is-entering");
+    // Drop the class once it has played. A finished animation keeps the panel
+    // on its own compositing layer, which switches all its text to greyscale
+    // antialiasing and leaves it there for the life of the page.
+    window.clearTimeout(panel._enterTimer);
+    panel._enterTimer = window.setTimeout(() => panel.classList.remove("is-entering"), 260);
   }
 
   function currentTitle() {
@@ -399,14 +436,24 @@
   }
 
   function renderHomeCategories() {
-    qs("#homeCategories").innerHTML = categories.map(category => `
-      <article class="skill-card" tabindex="0" role="button" data-accent="${category.accent}" data-category-open="${escapeHtml(category.name)}">
+    // The title carries the control, so its accessible name is just the
+    // category name while its visible text matches it (WCAG 2.5.3). The
+    // button's hit area is stretched over the card in CSS, so the whole card
+    // stays clickable. "cat-" keeps these ids clear of the skill cards, which
+    // can slug identically: Engineering has a category and a skill both
+    // called Web Fundamentals, and both panels are in the DOM at once.
+    qs("#homeCategories").innerHTML = categories.map(category => {
+      const id = `cat-${slugify(category.name)}`;
+      return `
+      <div class="skill-card" data-accent="${category.accent}">
         <div class="card-kicker">${pad2(category.displayOrder)}.</div>
-        <h3>${escapeHtml(category.name)}</h3>
+        <h3 class="ttl"><button type="button" class="card-btn" aria-describedby="${id}-c"
+          data-category-open="${escapeHtml(category.name)}">${escapeHtml(category.name)}</button></h3>
         <p>${escapeHtml(category.description)}</p>
-        <span class="card-link">${category.skills.length} skills &rarr;</span>
-      </article>
-    `).join("");
+        <span class="card-link" id="${id}-c">${category.skills.length} skills &rarr;</span>
+      </div>
+    `;
+    }).join("");
   }
 
   function renderPills() {
@@ -428,15 +475,18 @@
     const visibleCategories = categories.filter(category => category.name === state.category);
 
     qs("#skillGrid").innerHTML = visibleCategories.flatMap(category =>
-      category.skills.map((skill, index) => `
-        <article class="skill-card" tabindex="0" role="button" data-accent="${category.accent}"
-          data-skill-slug="${slugify(skill.name)}">
+      category.skills.map((skill, index) => {
+        const slug = slugify(skill.name);
+        return `
+        <div class="skill-card" data-accent="${category.accent}">
           <div class="card-kicker">${pad2(index + 1)}.</div>
-          <h3>${escapeHtml(skill.name)}</h3>
-          <p>${escapeHtml(skillSummary(skill))}</p>
+          <h2 class="ttl"><button type="button" class="card-btn" aria-describedby="sk-${slug}-d"
+            data-skill-slug="${slug}">${escapeHtml(skill.name)}</button></h2>
+          <p id="sk-${slug}-d">${escapeHtml(skillSummary(skill))}</p>
           <span class="card-link">View skill details &rarr;</span>
-        </article>
-      `)
+        </div>
+      `;
+      })
     ).join("");
   }
 
@@ -451,7 +501,7 @@
       + (resource.mandatory ? `<span class="badge mandatory">Mandatory</span>` : "");
   }
 
-  function resourceCard(resource) {
+  function resourceCard(resource, level = 2) {
     const provider = resource.provider || resource.section;
     return `
       <article class="resource-card">
@@ -459,7 +509,7 @@
           ${resourceBadges(resource)}
         </div>
         ${provider ? `<div class="provider">${escapeHtml(provider)}</div>` : ""}
-        <h3>${escapeHtml(resource.title)}</h3>
+        <h${level} class="ttl">${escapeHtml(resource.title)}</h${level}>
         <p class="meta-line">${escapeHtml(resource.skill)}${resource.category ? " &middot; " + escapeHtml(resource.category) : ""}</p>
         <div class="resource-actions">
           <a class="action-button" href="${escapeHtml(resource.url || "#")}" target="_blank" rel="noopener noreferrer">Start learning</a>
@@ -487,14 +537,14 @@
         sectionsHtml = `
           <div class="section-label">
             <span class="step-badge">1</span>
-            <h3>Resources</h3>
+            <h2 class="ttl">Resources</h2>
           </div>
           <div class="resource-grid">
-            ${skill.resources.map(resourceCard).join("")}
+            ${skill.resources.map(r => resourceCard(r, 3)).join("")}
           </div>
         `;
       } else {
-        sectionsHtml = `<div class="empty-state"><h3>No resources yet</h3><p>This skill is listed in the roadmap but has no resources recorded against it yet.</p></div>`;
+        sectionsHtml = `<div class="empty-state"><h2 class="ttl">No resources yet</h2><p>This skill is listed in the roadmap but has no resources recorded against it yet.</p></div>`;
       }
     } else {
       const sections = [
@@ -510,10 +560,10 @@
         return `
           <div class="section-label">
             <span class="step-badge">${badgeNumber}</span>
-            <h3>${section.label}</h3>
+            <h2 class="ttl">${section.label}</h2>
           </div>
           <div class="resource-grid">
-            ${items.map(resourceCard).join("")}
+            ${items.map(r => resourceCard(r, 3)).join("")}
           </div>
         `;
       }).join("");
@@ -526,7 +576,7 @@
     const relatedCertsHtml = relatedCerts.length ? `
       <div class="section-label">
         <span class="step-badge">${badgeNumber + 1}</span>
-        <h3>Related certifications</h3>
+        <h2 class="ttl">Related certifications</h2>
       </div>
       <div class="badges">
         ${relatedCerts.map(item => `<button type="button" class="badge" data-hub-tab="certifications">${escapeHtml(item.name)}</button>`).join("")}
@@ -575,8 +625,8 @@
 
     qs("#resultsLine").textContent = `${filtered.length} resource${filtered.length === 1 ? "" : "s"} found`;
     qs("#resourceGrid").innerHTML = filtered.length
-      ? filtered.map(resourceCard).join("")
-      : `<div class="empty-state"><h3>No resources match these filters</h3><p>Try clearing one or more filters.</p></div>`;
+      ? filtered.map(resource => resourceCard(resource)).join("")
+      : `<div class="empty-state"><h2 class="ttl">No resources match these filters</h2><p>Try clearing one or more filters.</p></div>`;
   }
 
   function renderCertifications() {
@@ -584,14 +634,14 @@
     qs("#certificationGroups").innerHTML = groups.map(group => `
       <div class="cert-group-header">
         <span class="step-badge">${escapeHtml(group.category.split(" ")[0][0])}</span>
-        <h3>${escapeHtml(group.category)}</h3>
+        <h2 class="ttl">${escapeHtml(group.category)}</h2>
       </div>
       <div class="cert-grid">
         ${group.items.map(item => `
           <article class="cert-card" data-accent="${group.accent}">
             <span class="badge cert-level">${escapeHtml(item.level)}</span>
             <div class="provider">${escapeHtml(item.body)}</div>
-            <h4>${escapeHtml(item.name)}</h4>
+            <h3 class="ttl">${escapeHtml(item.name)}</h3>
             <p>${escapeHtml(item.description)}</p>
             ${(item.requiredSkills || []).length ? `
               <div class="badges skill-tags">
@@ -618,7 +668,7 @@
   function renderPaths() {
     qs("#pathGrid").innerHTML = (track.learningPaths || []).map(path => `
       <article class="path-card">
-        <h3>${escapeHtml(path.level || "Learning path")}</h3>
+        <h2 class="ttl">${escapeHtml(path.level || "Learning path")}</h2>
         ${!(path.steps || []).length ? `<p class="path-empty">No resources tagged at this level yet.</p>` : ""}
         ${(path.steps || []).map((step, index) => {
           const title = step.title || step;
@@ -670,7 +720,7 @@
   function platformCard(platform, extra) {
     return `
       <article class="platform-card">
-        <h3>${escapeHtml(platform.name)}</h3>
+        <h3 class="ttl">${escapeHtml(platform.name)}</h3>
         ${extra ? `<div class="cost">${escapeHtml(extra)}</div>` : ""}
         <p>${escapeHtml(platform.description || platform.bestFor || "")}</p>
         <div class="resource-actions">
@@ -686,6 +736,148 @@
     qs("#premiumPlatformGrid").innerHTML = premium.map(p => platformCard(p, p.cost)).join("");
     qs("#premiumPlatformLabel").hidden = !premium.length;
     qs("#premiumPlatformGrid").hidden = !premium.length;
+  }
+
+
+  // ================================================================ REVEAL
+  // Progressive enhancement. The markup is visible with no JS at all; the
+  // hiding rules are scoped to html.reveal-ready, which only this code adds.
+  //
+  // Pacing lives in one place: --reveal-speed in styles.css. The base values
+  // below are milliseconds at speed 1 and are multiplied by it, in CSS for
+  // the animations and here for the bookkeeping, so the two never drift.
+  // Each kind has one target length at speed 1. Series of the same kind hold
+  // different numbers of items (the pillars have three and no connector; the
+  // journey has four and a connector), so the per-element offsets are derived
+  // from the target rather than fixed, and every series of a kind finishes
+  // together.
+  const REVEAL_BASE = {
+    h: { target: 1300, item: 420, dot: 380 },
+    v: { target: 920,  item: 400, dot: 0 },
+    g: { target: 520,  item: 340, dot: 0 }
+  };
+
+  const revealSpeed = () => {
+    const raw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--reveal-speed"));
+    return Number.isFinite(raw) && raw > 0 ? raw : 1;
+  };
+
+  // Spread n elements of the given duration across the target window.
+  const stepFor = (n, target, duration) => (n > 1 ? (target - duration) / (n - 1) : 0);
+
+  function primeRevealSeries(series) {
+    const base = REVEAL_BASE[series.dataset.reveal] || REVEAL_BASE.v;
+    const items = qsa("[data-item]", series);
+    const segs = qsa(".seg", series);
+    const dots = qsa(".journey-dot, .aiq-dot", series);
+
+    // --d is a plain number of milliseconds; the stylesheet adds the unit and
+    // the speed multiplier.
+    const itemStep = stepFor(items.length, base.target, base.item);
+    items.forEach((el, i) => el.style.setProperty("--d", String(Math.round(i * itemStep))));
+
+    // The line reaches each circle as that circle fills, so both share a step
+    // and each segment takes exactly one step to draw.
+    const dotStep = stepFor(dots.length, base.target, base.dot);
+    dots.forEach((el, i) => el.style.setProperty("--d", String(Math.round(i * dotStep))));
+    segs.forEach((el, i) => el.style.setProperty("--d", String(Math.round(i * dotStep))));
+    if (segs.length) series.style.setProperty("--rev-seg", String(Math.round(dotStep)));
+
+    series._revealBase = base.target;
+  }
+
+  function seriesDuration(series) {
+    return Math.round((series._revealBase || 0) * revealSpeed());
+  }
+
+  // Play from the first frame. Clearing the classes drops the elements back to
+  // their pre-animation state; the reflow between clear and re-add is what
+  // makes the browser restart the animations rather than continue them.
+  function playReveal(series) {
+    if (reducedMotion()) { series.classList.add("is-in", "is-done"); return; }
+    if (series._revealPlaying) return;
+    window.clearTimeout(series._revealTimer);
+    series.classList.remove("is-in", "is-done");
+    void series.offsetWidth;
+    series._revealPlaying = true;
+    series.classList.add("is-in");
+    series._revealTimer = window.setTimeout(() => {
+      series.classList.add("is-done");
+      series._revealPlaying = false;          // re-armed for the next hover
+    }, seriesDuration(series) + 60);
+  }
+
+  let revealObserver = null;
+
+  function armRevealObserver() {
+    if (revealObserver) revealObserver.disconnect();
+    // A series taller than the viewport can never reach 0.4, so also accept a
+    // visible slice of at least half the viewport.
+    revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const tallEnough = entry.intersectionRect.height >= window.innerHeight * 0.5;
+        if (entry.intersectionRatio >= 0.4 || (entry.isIntersecting && tallEnough)) {
+          playReveal(entry.target);
+        }
+      });
+    }, { threshold: [0, 0.1, 0.2, 0.3, 0.4] });
+    qsa("[data-reveal]").forEach(series => revealObserver.observe(series));
+  }
+
+  // Every load, and every restore from the back/forward cache, starts over.
+  // Nothing is stored anywhere; the state lives on the elements.
+  function resetAllReveals() {
+    qsa("[data-reveal]").forEach(series => {
+      window.clearTimeout(series._revealTimer);
+      series._revealPlaying = false;
+      series.classList.remove("is-in", "is-done");
+    });
+    void document.body.offsetWidth;
+  }
+
+  function startReveal() {
+    if (reducedMotion()) {
+      qsa("[data-reveal]").forEach(series => series.classList.add("is-in", "is-done"));
+      return;
+    }
+    resetAllReveals();
+    armRevealObserver();
+    // Last resort for a series the observer can never satisfy.
+    window.setTimeout(() => qsa("[data-reveal]:not(.is-in)").forEach(playReveal), 6000);
+  }
+
+  function primeReveal() {
+    if (!("IntersectionObserver" in window)) return;   // no IO: leave it visible
+    document.documentElement.classList.add("reveal-ready");
+    qsa("[data-reveal]").forEach(primeRevealSeries);
+
+    // Hold until the webfont has settled, so the first frame is not swapped
+    // out from under the viewer, then give them a moment to look.
+    const begin = () => window.setTimeout(startReveal, 300);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(begin);
+    else begin();
+
+    // Replay on hover (mouse or pen) and on tap. Ignored while a series is
+    // still playing; playReveal re-arms itself when it finishes. These are
+    // passive listeners on a non-interactive container: no tab stop, no
+    // cursor change, no focus ring.
+    const replay = event => {
+      if (reducedMotion()) return;
+      const series = event.target.closest("[data-reveal]");
+      if (series) playReveal(series);
+    };
+    qsa("[data-reveal]").forEach(series => {
+      series.addEventListener("pointerenter", e => {
+        if (e.pointerType === "mouse" || e.pointerType === "pen") replay(e);
+      });
+      series.addEventListener("pointerup", e => {
+        if (e.pointerType === "touch") replay(e);
+      });
+    });
+
+    window.addEventListener("pageshow", event => {
+      if (event.persisted) startReveal();
+    });
   }
 
   // ---------------------------------------------------------------- track
@@ -776,10 +968,7 @@
 
   document.addEventListener("keydown", event => {
     if (event.target.closest('[role="tab"]')) { tabKeydown(event); return; }
-    if ((event.key === "Enter" || event.key === " ") && event.target.matches(".skill-card")) {
-      event.preventDefault();
-      event.target.click();
-    }
+    // skill cards activate through a real <button>, so Enter and Space are native
   });
 
   ["resourceSearch", "categoryFilter", "typeFilter", "costFilter"].forEach(id => {
@@ -797,5 +986,6 @@
   // ---------------------------------------------------------------- boot
   loadTrack(tracks[0].id);
   renderAll();
+  primeReveal();
   applyRoute(location.hash, { push: false, quiet: true });
 })();

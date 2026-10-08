@@ -22,9 +22,9 @@
   </header>
 
   <!-- PRIMARY TABS (purple, flows into the hero) -->
-  <div class="tabbar tabbar-primary" id="primaryTabBar" hidden>
+  <nav class="tabbar tabbar-primary" id="primaryTabBar" aria-label="Sections" hidden>
     <div class="wrap tabbar-scroll" id="primaryTabList" role="tablist" aria-label="Sections"></div>
-  </div>
+  </nav>
 
   <main id="main">
 
@@ -34,29 +34,30 @@
         <div class="wrap hero-grid">
           <div>
             <div class="eyebrow">Quality engineering &amp; assurance</div>
-            <h1>Confidence in <span class="teal">design.</span><br>Confidence in <span class="green">delivery.</span></h1>
-            <p class="lead">Experienced assurance leadership.<br>Hands-on engineering. Clear release evidence.</p>
-            <p class="intro">We bring deep wealth and investment expertise to large-scale programmes, complex data and business migrations, and scalable, reliable platforms.</p>
+            <h1>Quality engineering.<br><span class="teal">Business understanding.</span><br><span class="green">Release confidence.</span></h1>
+            <p class="lead">Confidence in the business outcomes behind every release.</p>
+            <p class="intro">We combine deep wealth and investment knowledge with hands-on testing and automation, helping teams deliver reliable financial services platforms.</p>
             <button class="button lime" type="button" data-go-tab="capabilities">Explore our capabilities</button>
           </div>
-          <aside class="hero-quality" aria-labelledby="quality-heading">
+          <aside class="hero-quality" aria-labelledby="quality-heading" data-reveal="v">
             <div class="eyebrow">Quality built into delivery</div>
             <h2 id="quality-heading">From business risk<br>to release confidence.</h2>
-            <div class="quality-point">
+            <span class="rev-rule" aria-hidden="true"></span>
+            <div class="quality-point" data-item>
               <span class="quality-number">01.</span>
               <div>
                 <h3>Focus on what matters</h3>
                 <p>Prioritise customer journeys, operational controls and the consequences of failure.</p>
               </div>
             </div>
-            <div class="quality-point">
+            <div class="quality-point" data-item>
               <span class="quality-number">02.</span>
               <div>
                 <h3>Test across the platform</h3>
                 <p>Connect functional testing with API, integration and data checks. Automate repeatable controls at the right layer.</p>
               </div>
             </div>
-            <div class="quality-point">
+            <div class="quality-point" data-item>
               <span class="quality-number">03.</span>
               <div>
                 <h3>Make readiness visible</h3>
@@ -77,13 +78,139 @@
           <div class="eyebrow">Established expertise</div>
           <h2 id="experience-heading">Experience that anticipates<br>delivery risk.</h2>
           <p>Our QA leaders have built and led teams across functional testing, performance and automation for complex wealth and financial services platforms.</p>
-          <p>Our founding team brings deep QA and quality engineering experience across regulated products, digital transformation, platform delivery, vendors and complex partner ecosystems.</p>
+          <p>Our QA specialists bring established experience delivering regulated products and complex platform change, working alongside product teams, vendors and delivery partners.</p>
         </div>
         <div class="experience-insight">
-          <h3>Product knowledge applied to delivery</h3>
-          <p>Our deep product and market knowledge helps us recognise where complex change can fail and put practical controls in place early.</p>
-          <p>We connect requirements, data and platform behaviour with the customer and operational outcomes that must work.</p>
+          <h3>The business outcome matters</h3>
+          <p>A completed transaction can still produce an incorrect charge, balance or statement. Our tests examine the rules behind the journey and the consequences of getting them wrong.</p>
+          <p>Product knowledge helps us identify where delivery can fail and put the right checks in place early.</p>
         </div>
+      </section>
+
+      <section class="connected" aria-labelledby="connected-heading">
+        <div class="wrap">
+          <div class="connected-head">
+            <div>
+              <div class="eyebrow">Connected assurance</div>
+              <h2 id="connected-heading">One instruction.<br>A complete business outcome.</h2>
+            </div>
+            <p>We follow critical journeys across screens, services and data, checking that each handoff preserves the intended result.</p>
+          </div>
+
+          <div class="journey-card">
+            <div class="journey-head">
+              <span class="journey-kicker">Example journey</span>
+              <strong>An investment instruction</strong>
+            </div>
+            <div class="journey-steps" data-reveal="h">
+              <div class="journey-step" data-item>
+                <span class="seg" aria-hidden="true"></span>
+                <span class="journey-dot">01</span>
+                <span class="journey-label">Portal</span>
+                <strong>Instruction captured</strong>
+                <p>Permissions, product rules and the requested investment.</p>
+              </div>
+              <div class="journey-step" data-item>
+                <span class="seg" aria-hidden="true"></span>
+                <span class="journey-dot">02</span>
+                <span class="journey-label">API &amp; integration</span>
+                <strong>Instruction processed</strong>
+                <p>Validations and downstream handoffs carry the same intent.</p>
+              </div>
+              <div class="journey-step" data-item>
+                <span class="seg final" aria-hidden="true"></span>
+                <span class="journey-dot">03</span>
+                <span class="journey-label">Data &amp; records</span>
+                <strong>Position confirmed</strong>
+                <p>Cash and holdings reflect the expected business result.</p>
+              </div>
+              <div class="journey-step" data-item>
+                <span class="journey-dot">04</span>
+                <span class="journey-label">Client output</span>
+                <strong>Outcome communicated</strong>
+                <p>Statements and confirmations agree with platform records.</p>
+              </div>
+            </div>
+            <div class="journey-foot">
+              <strong>Evidence across the journey</strong>
+              <span>Linked checks show what happened at each stage, including exceptions and failed handoffs.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="coverage wrap" aria-labelledby="coverage-heading">
+        <div class="coverage-copy">
+          <div class="eyebrow eyebrow-ink">Coverage with context</div>
+          <h2 id="coverage-heading">Different circumstances.<br>Deliberate coverage.</h2>
+          <p>Wealth journeys change with the product, account and person using them. We design scenarios around those differences and the boundaries where rules can fail.</p>
+          <p>Product and operations specialists help agree expected outcomes. Controlled test data makes the checks repeatable.</p>
+        </div>
+        <div class="coverage-panel" data-reveal="v">
+          <div class="cov-head">
+            <span class="cov-kicker">Shared journey</span>
+            <strong>Account servicing</strong>
+            <span class="cov-sub">Agreed business rules and expected outcomes</span>
+          </div>
+          <div class="cov-list">
+            <span class="rev-rule cov-rule" aria-hidden="true"></span>
+            <div class="cov-card" data-item>
+              <strong>Product &amp; account</strong>
+              <span>Wrapper rules, eligibility and account status</span>
+            </div>
+            <div class="cov-card" data-item>
+              <strong>Charges &amp; balances</strong>
+              <span>Fee arrangements, thresholds and boundary values</span>
+            </div>
+            <div class="cov-card" data-item>
+              <strong>Access &amp; authority</strong>
+              <span>Client, adviser and operational permissions</span>
+            </div>
+            <div class="cov-card" data-item>
+              <strong>Exceptions &amp; support</strong>
+              <span>Incomplete data, failed requests and support routes</span>
+            </div>
+          </div>
+          <div class="cov-outcome" data-item>
+            <span class="cov-tick" aria-hidden="true">&#10003;</span>
+            <div>
+              <strong>Coverage tied to business risk</strong>
+              <span>Results by scenario, with gaps and assumptions visible.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="readiness wrap" aria-labelledby="readiness-heading">
+        <div class="readiness-copy">
+          <div class="eyebrow eyebrow-ink">Visible readiness</div>
+          <h2 id="readiness-heading">Evidence that supports<br>release decisions.</h2>
+          <p>We bring the assessment and evidence together so accountable business owners can make informed decisions.</p>
+        </div>
+        <ol class="readiness-rows" data-reveal="v">
+          <span class="rev-rule rd-rule" aria-hidden="true"></span>
+          <li data-item>
+            <span class="rd-num">01</span>
+            <div>
+              <strong>What we covered</strong>
+              <p>Requirements and business risks linked to scenarios, test data and execution results.</p>
+            </div>
+          </li>
+          <li data-item>
+            <span class="rd-num">02</span>
+            <div>
+              <strong>What remains open</strong>
+              <p>Defects, untested areas and dependencies explained through customer and operational impact.</p>
+            </div>
+          </li>
+          <li data-item>
+            <span class="rd-num">03</span>
+            <div>
+              <strong>What happens next</strong>
+              <p>Clear actions and ownership, with the remaining risk visible at the release decision.</p>
+            </div>
+          </li>
+        </ol>
       </section>
     </section>
 
@@ -97,10 +224,10 @@
         </div>
       </div>
       <div class="wrap section-pad">
-        <div class="cards">
-          <article>
+        <div class="cards" data-reveal="g">
+          <article data-item>
             <span class="number">01.</span>
-            <h3>Quality strategy &amp;<br>independent assurance</h3>
+            <h2 class="ttl">Quality strategy &amp;<br>independent assurance</h2>
             <p>Bring clarity to coverage, ownership and release readiness. We define risk-led strategies and turn test evidence into a clear view of progress and remaining risk.</p>
             <p class="service-outcome"><span>Client value</span>Clearer release decisions, supported by evidence.</p>
             <details>
@@ -112,9 +239,9 @@
               </ul>
             </details>
           </article>
-          <article>
+          <article data-item>
             <span class="number">02.</span>
-            <h3>Functional &amp;<br>end-to-end testing</h3>
+            <h2 class="ttl">Functional &amp;<br>end-to-end testing</h2>
             <p>Validate the journeys that matter to customers, advisers and operations. Structured testing and exploration cover everyday behaviour, exceptions and dependencies.</p>
             <p class="service-outcome"><span>Client value</span>Confidence in complete customer and operational journeys.</p>
             <details>
@@ -126,9 +253,9 @@
               </ul>
             </details>
           </article>
-          <article>
+          <article data-item>
             <span class="number">03.</span>
-            <h3>Test automation &amp;<br>continuous quality</h3>
+            <h2 class="ttl">Test automation &amp;<br>continuous quality</h2>
             <p>Build trusted, maintainable automation. We design layered frameworks and integrate repeatable checks into delivery pipelines, bringing feedback closer to the change.</p>
             <p class="service-outcome"><span>Client value</span>Reliable regression and earlier feedback on change.</p>
             <details>
@@ -140,9 +267,9 @@
               </ul>
             </details>
           </article>
-          <article>
+          <article data-item>
             <span class="number">04.</span>
-            <h3>API, integration &amp;<br>data assurance</h3>
+            <h2 class="ttl">API, integration &amp;<br>data assurance</h2>
             <p>Follow the transaction beyond the screen. Validate interfaces, feeds, transformations and downstream outputs across connected platforms and services.</p>
             <p class="service-outcome"><span>Client value</span>Greater confidence in cross-system data and transactions.</p>
             <details>
@@ -154,9 +281,9 @@
               </ul>
             </details>
           </article>
-          <article>
+          <article data-item>
             <span class="number">05.</span>
-            <h3>Migration &amp;<br>release assurance</h3>
+            <h2 class="ttl">Migration &amp;<br>release assurance</h2>
             <p>Prove the migration progressively. Validate accurate, serviceable customer records, reconciled financial positions and working journeys, with evidence of readiness at each stage.</p>
             <p class="service-outcome"><span>Client value</span>Confidence in customer outcomes after the move.</p>
             <details>
@@ -170,9 +297,9 @@
               </ul>
             </details>
           </article>
-          <article>
+          <article data-item>
             <span class="number">06.</span>
-            <h3>Performance &amp;<br>operational readiness</h3>
+            <h2 class="ttl">Performance &amp;<br>operational readiness</h2>
             <p>Understand how the platform behaves under pressure. Shape testing around business peaks, processing volumes and recovery needs alongside engineering and operational teams.</p>
             <p class="service-outcome"><span>Client value</span>Evidence of capacity and readiness for business peaks.</p>
             <details>
@@ -197,22 +324,22 @@
         </div>
       </div>
       <div class="wrap section-pad">
-        <div class="pillars pillars-light">
-          <div>
+        <div class="pillars pillars-light" data-reveal="h">
+          <div data-item>
             <span>01.</span>
-            <h3>Understand the challenge</h3>
+            <h2 class="ttl">Understand the challenge</h2>
             <p>Deep product and market knowledge connects discovery and design with critical journeys, delivery constraints and gaps in assurance.</p>
             <p class="delivery-result">A shared view of priorities, scope and ownership.</p>
           </div>
-          <div>
+          <div data-item>
             <span>02.</span>
-            <h3>Beyond consulting</h3>
+            <h2 class="ttl">Beyond consulting</h2>
             <p>We combine solutions consulting with engineering expertise, from detailed analysis to hands-on testing and implementation. We stay close to the work through to outcomes.</p>
             <p class="delivery-result">Practical test assets, trusted automation and usable evidence.</p>
           </div>
-          <div>
+          <div data-item>
             <span>03.</span>
-            <h3>Augment acceleration</h3>
+            <h2 class="ttl">Augment acceleration</h2>
             <p>We add the right expertise at the right stage, working alongside delivery teams and ecosystem partners. Coaching and practical support strengthen people, processes and platforms.</p>
             <p class="delivery-result">Documented workflows, coaching and lasting delivery capability.</p>
           </div>
@@ -224,43 +351,60 @@
     <section class="tabpanel" id="panel-ai" role="tabpanel" aria-labelledby="tab-ai" data-track="testing" tabindex="-1" hidden>
       <div class="hero compact">
         <div class="wrap">
-          <div class="eyebrow">AI &amp; quality</div>
-          <h1>Accelerate the work.<br>Keep the accountability.</h1>
-          <p class="lead">Apply AI where it adds practical value, with human review and traceable evidence.</p>
+          <div class="eyebrow">AI &amp; quality engineering</div>
+          <h1>AI assistance.<br>Engineering accountability.</h1>
+          <p class="lead">We apply AI selectively to analysis, scenario drafting and automation development. Engineers own the checks and the decisions.</p>
         </div>
       </div>
-      <div class="wrap ai section-pad">
-        <div class="ai-heading">
-          <div class="ai-assurance">
-            <span class="small-label">Assurance for AI-enabled products</span>
-            <h3>Evaluate the behaviour that matters.</h3>
-            <p>Define scenarios for output quality, workflow behaviour, guardrails and failure handling, with clear acceptance criteria.</p>
+      <section class="aiq">
+        <div class="wrap">
+          <div class="aiq-card">
+            <div class="aiq-flow" data-reveal="h">
+              <div class="aiq-step" data-item>
+                <span class="seg" aria-hidden="true"></span>
+                <span class="aiq-dot">01</span>
+                <strong>Understand the change</strong>
+                <p>Bring requirements, product knowledge and existing coverage together.</p>
+                <span class="aiq-tick">Scope agreed</span>
+              </div>
+              <div class="aiq-step" data-item>
+                <span class="seg" aria-hidden="true"></span>
+                <span class="aiq-dot">02</span>
+                <strong>Shape the scenarios</strong>
+                <p>Use AI to assist drafting. Review expected outcomes and remove duplication.</p>
+                <span class="aiq-tick">Engineer review</span>
+              </div>
+              <div class="aiq-step" data-item>
+                <span class="seg" aria-hidden="true"></span>
+                <span class="aiq-dot">03</span>
+                <strong>Build &amp; verify</strong>
+                <p>Develop maintainable checks and confirm they detect the intended failures.</p>
+                <span class="aiq-tick">Changes approved</span>
+              </div>
+              <div class="aiq-step" data-item>
+                <span class="aiq-dot">04</span>
+                <strong>Execute &amp; assess</strong>
+                <p>Run approved tests, investigate results and retain traceable evidence.</p>
+                <span class="aiq-tick">Evidence assessed</span>
+              </div>
+            </div>
+            <div class="aiq-band">
+              <strong>Learning feeds back into coverage</strong>
+              <span>Investigated failures and product changes inform the next review of scenarios and automation.</span>
+            </div>
+          </div>
+          <div class="aiq-cols">
+            <div>
+              <h2 class="ttl">Value we can assess</h2>
+              <p>Time saved alongside rework, coverage and suite reliability informs where AI earns its place.</p>
+            </div>
+            <div>
+              <h2 class="ttl">Assurance for AI-enabled products</h2>
+              <p>Define tests for output quality, workflow behaviour, guardrails and failure handling against agreed acceptance criteria.</p>
+            </div>
           </div>
         </div>
-        <div class="ai-steps">
-          <div class="quality-point">
-            <span class="quality-number">01.</span>
-            <div>
-              <h3>Identify useful applications</h3>
-              <p>Focus AI assistance on time-consuming work: scenario design, automation development, maintenance and defect analysis.</p>
-            </div>
-          </div>
-          <div class="quality-point">
-            <span class="quality-number">02.</span>
-            <div>
-              <h3>Review before execution</h3>
-              <p>Review findings and candidate journeys before creating scripts. Engineers check the outputs and retain ownership of quality decisions.</p>
-            </div>
-          </div>
-          <div class="quality-point">
-            <span class="quality-number">03.</span>
-            <div>
-              <h3>Measure the value</h3>
-              <p>Assess time saved alongside rework, coverage and suite reliability. Use the evidence to decide where AI adds value.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      </section>
     </section>
 
     <!-- ================= GROWTH HUB (shared by all tracks) ================= -->
@@ -411,9 +555,9 @@
           </div>
         </div>
         <div class="wrap section-pad">
-          <div class="section-label"><h3>Free platforms</h3></div>
+          <div class="section-label"><h2 class="ttl">Free platforms</h2></div>
           <div class="platform-grid" id="freePlatformGrid"></div>
-          <div class="section-label" id="premiumPlatformLabel"><h3>Premium subscriptions</h3></div>
+          <div class="section-label" id="premiumPlatformLabel"><h2 class="ttl">Premium subscriptions</h2></div>
           <div class="platform-grid" id="premiumPlatformGrid"></div>
         </div>
       </div>
@@ -442,7 +586,7 @@
           </a>
         </div>
         <div class="footer-col">
-          <h4 class="footer-heading">Registered address</h4>
+          <h2 class="footer-heading">Registered address</h2>
           <p class="footer-address">
             <svg class="footer-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s7-7.58 7-12.5A7 7 0 0 0 5 9.5C5 14.42 12 22 12 22Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>
             Nikao Technology Limited<br>
@@ -455,14 +599,14 @@
           </p>
         </div>
         <div class="footer-col">
-          <h4 class="footer-heading">Contact</h4>
+          <h2 class="footer-heading">Contact</h2>
           <a class="footer-contact-link" href="mailto:info@nika-o.com">
             <svg class="footer-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             info@nika-o.com
           </a>
         </div>
         <div class="footer-col">
-          <h4 class="footer-heading">Connect</h4>
+          <h2 class="footer-heading">Connect</h2>
           <a class="footer-social-link" href="https://www.linkedin.com/company/nikao-technology/" target="_blank" rel="noopener noreferrer" aria-label="Nikao on LinkedIn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 10v7M7.5 7.5v.01M12 17v-4.5c0-1.4 1-2.5 2.25-2.5S16.5 11.1 16.5 12.5V17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           </a>
