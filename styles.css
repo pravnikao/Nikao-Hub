@@ -347,11 +347,21 @@ details li { margin: 8px 0; }
 /* Skill / category cards */
 .skill-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
 .skill-card {
+  position: relative;
   background: var(--pale); border-radius: var(--radius); border-top: 3px solid var(--purple);
   padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3);
   transition: transform .2s;
 }
 .skill-card:hover { transform: translateY(-2px); cursor: pointer; }
+/* The title is the real control. It looks like plain heading text, and its
+   hit area is stretched across the card so the whole card stays clickable. */
+.card-btn {
+  display: inline; background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; letter-spacing: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.card-btn::after { content: ""; position: absolute; inset: 0; }
+.card-btn:focus-visible { outline: none; }
+.skill-card:has(.card-btn:focus-visible) { outline: 3px solid var(--blue); outline-offset: 3px; }
 .skill-card[data-accent="ocean"] { border-top-color: var(--blue); }
 .skill-card[data-accent="teal"]  { border-top-color: var(--teal); }
 .skill-card[data-accent="lime"]  { border-top-color: var(--lime); }

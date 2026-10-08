@@ -404,14 +404,24 @@
   }
 
   function renderHomeCategories() {
-    qs("#homeCategories").innerHTML = categories.map(category => `
-      <div class="skill-card" tabindex="0" role="button" data-accent="${category.accent}" data-category-open="${escapeHtml(category.name)}">
+    // The title carries the control, so its accessible name is just the
+    // category name while its visible text matches it (WCAG 2.5.3). The
+    // button's hit area is stretched over the card in CSS, so the whole card
+    // stays clickable. "cat-" keeps these ids clear of the skill cards, which
+    // can slug identically: Engineering has a category and a skill both
+    // called Web Fundamentals, and both panels are in the DOM at once.
+    qs("#homeCategories").innerHTML = categories.map(category => {
+      const id = `cat-${slugify(category.name)}`;
+      return `
+      <div class="skill-card" data-accent="${category.accent}">
         <div class="card-kicker">${pad2(category.displayOrder)}.</div>
-        <h3 class="ttl">${escapeHtml(category.name)}</h3>
+        <h3 class="ttl"><button type="button" class="card-btn" aria-describedby="${id}-c"
+          data-category-open="${escapeHtml(category.name)}">${escapeHtml(category.name)}</button></h3>
         <p>${escapeHtml(category.description)}</p>
-        <span class="card-link">${category.skills.length} skills &rarr;</span>
+        <span class="card-link" id="${id}-c">${category.skills.length} skills &rarr;</span>
       </div>
-    `).join("");
+    `;
+    }).join("");
   }
 
   function renderPills() {
@@ -433,15 +443,18 @@
     const visibleCategories = categories.filter(category => category.name === state.category);
 
     qs("#skillGrid").innerHTML = visibleCategories.flatMap(category =>
-      category.skills.map((skill, index) => `
-        <div class="skill-card" tabindex="0" role="button" data-accent="${category.accent}"
-          data-skill-slug="${slugify(skill.name)}">
+      category.skills.map((skill, index) => {
+        const slug = slugify(skill.name);
+        return `
+        <div class="skill-card" data-accent="${category.accent}">
           <div class="card-kicker">${pad2(index + 1)}.</div>
-          <h2 class="ttl">${escapeHtml(skill.name)}</h2>
-          <p>${escapeHtml(skillSummary(skill))}</p>
+          <h2 class="ttl"><button type="button" class="card-btn" aria-describedby="sk-${slug}-d"
+            data-skill-slug="${slug}">${escapeHtml(skill.name)}</button></h2>
+          <p id="sk-${slug}-d">${escapeHtml(skillSummary(skill))}</p>
           <span class="card-link">View skill details &rarr;</span>
         </div>
-      `)
+      `;
+      })
     ).join("");
   }
 
@@ -827,10 +840,7 @@
 
   document.addEventListener("keydown", event => {
     if (event.target.closest('[role="tab"]')) { tabKeydown(event); return; }
-    if ((event.key === "Enter" || event.key === " ") && event.target.matches(".skill-card")) {
-      event.preventDefault();
-      event.target.click();
-    }
+    // skill cards activate through a real <button>, so Enter and Space are native
   });
 
   ["resourceSearch", "categoryFilter", "typeFilter", "costFilter"].forEach(id => {
