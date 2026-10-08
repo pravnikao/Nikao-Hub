@@ -266,8 +266,10 @@ h3 { font-size: var(--text-h3); line-height: 1.4; letter-spacing: -.4px; font-we
 .experience-insight h3 { font-size: var(--text-h3); margin-bottom: 16px; }
 
 /* ================= CAPABILITY CARDS ================= */
+.cap-stage { position: relative; }
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .cards article {
+  position: relative;
   background: var(--pale); padding: 30px; display: flex; flex-direction: column;
   border-top: 3px solid var(--purple); border-radius: var(--radius);
 }
@@ -278,6 +280,54 @@ h3 { font-size: var(--text-h3); line-height: 1.4; letter-spacing: -.4px; font-we
   font-size: 14px; font-weight: var(--weight-semibold); line-height: 1.55; margin-bottom: 20px;
 }
 .service-outcome span { display: block; color: var(--green-ink); font-size: 12px; letter-spacing: .7px; margin-bottom: 6px; }
+
+/* Every card spans the same five row tracks of the parent grid -- number,
+   title, paragraph, Client value, What we deliver -- so the rules line up
+   across a row however the text wraps. */
+@supports (grid-template-rows: subgrid) {
+  .cards article { display: grid; grid-template-rows: subgrid; grid-row: span 5; }
+  .cards article > .number { grid-row: 1; }
+  .cards article > .ttl { grid-row: 2; }
+  .cards article > p:not(.service-outcome) { grid-row: 3; }
+  .cards article > .service-outcome { grid-row: 4; margin-top: 0; }
+  .cards article > details,
+  .cards article > .deliver-row { grid-row: 5; }
+  /* The grid's 24px row gap now also falls between the rows inside a card, so
+     each child gives back the difference and the spacing stays as it was. The
+     grid's own box keeps the height it had, which matters: the reveal observer
+     works off how much of it is on screen. */
+  .cards article > .number { margin-bottom: -2px; }
+  .cards article > .ttl { margin-bottom: -6px; }
+  .cards article > p:not(.service-outcome) { margin-bottom: 0; }
+  .cards article > .service-outcome { margin-bottom: -4px; }
+}
+/* Without subgrid the outcome block stays bottom-anchored, so reserve the
+   height the subgrid row settles at -- its two-line form, measured at 83px --
+   to keep the rules level there too. */
+@supports not (grid-template-rows: subgrid) {
+  .cards .service-outcome { min-height: 83px; }
+}
+
+/* The title is the control that opens the popover. Its ::after stretches over
+   the whole card, so the card is the hit area while the button's accessible
+   name stays the title and nothing else. */
+.cap-trigger {
+  display: inline; background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; letter-spacing: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.cap-trigger::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+.cap-trigger:focus-visible { outline: none; }
+.cards article:has(.cap-trigger:focus-visible) { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+/* With script running the <details> becomes a static signpost: same height
+   whatever happens, no toggle, no tab stop. The list itself lives in the
+   popover, so the row is decoration and stays out of the accessibility tree. */
+.cards .deliver-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border-top: 1px solid var(--hairline-strong); padding-top: 16px;
+  font-size: 14px; font-weight: var(--weight-bold);
+}
+.cards .deliver-row .deliver-arrow { flex: none; width: 18px; height: 18px; color: var(--blue); }
 
 details { margin-top: auto; border-top: 1px solid var(--hairline-strong); padding-top: 16px; }
 .cards details { margin-top: 0; }
@@ -575,7 +625,8 @@ html.reveal-ready [data-reveal] .seg,
 html.reveal-ready [data-reveal] .rev-rule { transform: scaleX(0); }
 html.reveal-ready [data-reveal="v"] .rev-rule { transform: scaleY(0); }
 html.reveal-ready [data-reveal="h"] .journey-dot,
-html.reveal-ready [data-reveal="h"] .aiq-dot { transform: scale(.85); }
+html.reveal-ready [data-reveal="h"] .aiq-dot,
+html.reveal-ready [data-reveal="h"] .cap-dot { transform: scale(.85); }
 
 /* Base durations per series kind; --d is the per-element offset in plain
    milliseconds, set by the script. Both are scaled by the one knob. */
@@ -597,7 +648,8 @@ html.reveal-ready [data-reveal="v"].is-in .rev-rule {
   animation: revY calc(920ms * var(--reveal-speed)) ease-out both;
 }
 html.reveal-ready [data-reveal="h"].is-in .journey-dot,
-html.reveal-ready [data-reveal="h"].is-in .aiq-dot {
+html.reveal-ready [data-reveal="h"].is-in .aiq-dot,
+html.reveal-ready [data-reveal="h"].is-in .cap-dot {
   animation: revPop calc(380ms * var(--reveal-speed)) ease-out both;
   animation-delay: calc(var(--d, 0) * 1ms * var(--reveal-speed));
 }
@@ -610,7 +662,8 @@ html.reveal-ready [data-reveal].is-done [data-item],
 html.reveal-ready [data-reveal].is-done .seg,
 html.reveal-ready [data-reveal].is-done .rev-rule,
 html.reveal-ready [data-reveal].is-done .journey-dot,
-html.reveal-ready [data-reveal].is-done .aiq-dot {
+html.reveal-ready [data-reveal].is-done .aiq-dot,
+html.reveal-ready [data-reveal].is-done .cap-dot {
   opacity: 1; transform: none; animation: none; visibility: visible;
 }
 @keyframes revUp  { to { opacity: 1; transform: none; } }
@@ -742,6 +795,108 @@ html.reveal-ready [data-reveal].is-done .aiq-dot {
   .footer-meta-row { flex-direction: column; }
 }
 
+
+/* ================= CAPABILITY POPOVER ================= */
+/* The overlay covers exactly the card grid. Opening it zooms a clip-path out
+   from the card that was pointed at, so nothing in the grid moves. */
+.cap-overlay { position: absolute; inset: 0; z-index: 20; }
+.cap-panel {
+  position: absolute; inset: 0; overflow: hidden;
+  background: var(--purple); color: #fff; border-radius: var(--radius);
+  clip-path: inset(var(--ct, 0px) var(--cr, 0px) var(--cb, 0px) var(--cl, 0px));
+  transition: clip-path 450ms cubic-bezier(.22, .7, .2, 1);
+}
+.cap-overlay.is-closing .cap-panel { transition-duration: 250ms; }
+.cap-inner {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  padding: 40px; overflow-y: auto;
+  opacity: 0; transition: opacity 200ms ease-out 250ms;
+}
+.cap-overlay.is-open .cap-inner { opacity: 1; }
+.cap-overlay.is-closing .cap-inner { opacity: 0; transition: opacity 120ms ease-out; }
+
+.cap-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+.cap-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cap-chip {
+  min-width: 44px; height: 30px; padding: 0 10px; border-radius: 999px;
+  border: 1px solid #ffffff52; background: transparent; color: var(--fg-inverse-muted);
+  font: inherit; font-size: 13px; font-weight: var(--weight-bold); letter-spacing: .5px; cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.cap-chip:hover { border-color: var(--lime); color: #fff; }
+.cap-chip[aria-current="true"] { background: var(--lime); border-color: var(--lime); color: var(--purple); }
+.cap-close {
+  flex: none; width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid #ffffff52; background: transparent; color: #fff;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+.cap-close:hover { border-color: var(--lime); color: var(--lime); }
+.cap-chip:focus-visible, .cap-close:focus-visible { outline: 3px solid var(--lime); outline-offset: 2px; }
+/* The dialog takes focus when it opens so the next Tab lands inside it. It is
+   not in the tab order itself and the panel filling the grid is the indicator,
+   so it carries no ring of its own; every control inside has one. */
+.cap-panel:focus, .cap-panel:focus-visible { outline: none; }
+
+/* The bar stays at the top; the content centres in whatever room is left, and
+   the auto margins collapse to zero when there is none, so a long capability
+   still scrolls from its first line. */
+.cap-body { margin: auto 0; }
+
+.cap-num { display: block; font-size: 28px; font-weight: var(--weight-bold); color: var(--lime); margin-bottom: 12px; }
+.cap-title { font-size: 30px; line-height: 1.25; letter-spacing: -.6px; font-weight: var(--weight-bold); color: #fff; margin-bottom: var(--space-5); }
+.cap-cols { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-6); align-items: start; }
+.cap-lede { color: var(--fg-inverse-muted); font-size: var(--text-body); margin-bottom: 0; }
+.cap-outcome {
+  padding-top: 14px; border-top: 1px solid #ffffff28; color: #fff;
+  font-size: 14px; font-weight: var(--weight-semibold); line-height: 1.55; margin-bottom: 0;
+}
+.cap-outcome > span:first-child { display: block; color: var(--lime); font-size: 12px; letter-spacing: .7px; margin-bottom: 6px; }
+
+.cap-deliver { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid #ffffff28; }
+.cap-deliver-label { display: block; color: var(--lime); font-size: 13px; font-weight: var(--weight-bold); letter-spacing: 1px; }
+/* Same grammar as Connected assurance: numbered circles joined by a line that
+   draws from one to the next. */
+.cap-steps { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-5); padding-top: var(--space-6); }
+.cap-step { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.cap-step .seg { position: absolute; top: 16px; left: 34px; right: calc(-1 * var(--space-5)); height: 2px;
+  background: var(--flow); transform-origin: left; }
+.cap-dot {
+  width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--teal);
+  background: var(--purple); color: var(--lime);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: var(--weight-bold); position: relative; z-index: 1;
+}
+.cap-step p { color: var(--fg-inverse-muted); font-size: 14px; margin-bottom: 0; }
+
+/* Below the zoom breakpoint, and on any pointer that cannot hover, the popover
+   is a full-viewport sheet opened by activating the card. */
+@media (max-width: 1099px), (hover: none) {
+  .cap-overlay { position: fixed; inset: 0; z-index: 90; }
+  .cap-panel { clip-path: none; border-radius: 0; opacity: 0; transition: opacity 220ms ease-out; }
+  .cap-overlay.is-open .cap-panel { opacity: 1; }
+  .cap-overlay.is-closing .cap-panel { opacity: 0; }
+  .cap-inner { padding: 22px 20px 40px; transition: opacity 180ms ease-out 60ms; }
+  /* the chip rail wraps at this width, so the close button sits against its
+     first row rather than floating in the middle of two */
+  .cap-bar { margin-bottom: var(--space-5); align-items: flex-start; }
+  .cap-title { font-size: 26px; }
+  .cap-cols { grid-template-columns: 1fr; gap: var(--space-5); }
+  .cap-steps { grid-auto-flow: row; grid-auto-columns: auto; padding-top: var(--space-5); }
+  .cap-step { display: grid; grid-template-columns: 34px 1fr; column-gap: var(--space-4); align-items: start; }
+  .cap-step .seg { top: 34px; left: 16px; right: auto; width: 2px; height: auto;
+    bottom: calc(-1 * var(--space-5)); transform-origin: top; }
+  /* :not(.is-done) matters: this rule is more specific than the shared reset
+     that clears the transform once a series has played, so without it the
+     connector would stay collapsed for good. */
+  html.reveal-ready [data-reveal]:not(.is-done) .cap-step .seg { transform: scaleY(0); }
+  html.reveal-ready [data-reveal].is-in .cap-step .seg {
+    animation-name: revY;
+    animation-duration: calc(var(--rev-seg, 300) * 1ms * var(--reveal-speed));
+  }
+  html.cap-sheet-open, html.cap-sheet-open body { overflow: hidden; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .button, .action-button, .skill-card { transition: none; }
@@ -751,9 +906,14 @@ html.reveal-ready [data-reveal].is-done .aiq-dot {
   html.reveal-ready [data-reveal] .seg,
   html.reveal-ready [data-reveal] .rev-rule,
   html.reveal-ready [data-reveal] .journey-dot,
-  html.reveal-ready [data-reveal] .aiq-dot {
+  html.reveal-ready [data-reveal] .aiq-dot,
+  html.reveal-ready [data-reveal] .cap-dot {
     opacity: 1 !important; transform: none !important; animation: none !important; visibility: visible !important;
   }
   /* series are never interactive: no pointer affordance even with replay on */
   [data-reveal] { cursor: auto; }
+  /* the popover appears and disappears; it never zooms or fades */
+  .cap-panel { clip-path: none !important; transition: none !important; opacity: 1 !important; }
+  .cap-inner { opacity: 1 !important; transition: none !important; }
+  .cap-chip, .cap-close { transition: none; }
 }

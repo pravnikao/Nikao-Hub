@@ -224,7 +224,10 @@
         </div>
       </div>
       <div class="wrap section-pad">
-        <div class="cards" data-reveal="g">
+        <!-- The stage is the positioning context for the capability popover,
+             which the script builds from the cards below. -->
+        <div class="cap-stage">
+        <div class="cards" data-reveal="g" data-replay="off">
           <article data-item>
             <span class="number">01.</span>
             <h2 class="ttl">Quality strategy &amp;<br>independent assurance</h2>
@@ -311,6 +314,7 @@
               </ul>
             </details>
           </article>
+        </div>
         </div>
       </div>
     </section>

@@ -866,7 +866,10 @@
       const series = event.target.closest("[data-reveal]");
       if (series) playReveal(series);
     };
-    qsa("[data-reveal]").forEach(series => {
+    // data-replay="off" keeps a series' load stagger but leaves it alone after
+    // that: the capability cards sit under a hover popover, and restarting
+    // their stagger under the pointer read as a flicker.
+    qsa('[data-reveal]:not([data-replay="off"])').forEach(series => {
       series.addEventListener("pointerenter", e => {
         if (e.pointerType === "mouse" || e.pointerType === "pen") replay(e);
       });
@@ -878,6 +881,293 @@
     window.addEventListener("pageshow", event => {
       if (event.persisted) startReveal();
     });
+  }
+
+  // ---------------------------------------------------------------- capability popover
+  // The six capability cards are stationary. Pointing at one, or activating its
+  // title, zooms a popover out of that card's rectangle over the grid. Every
+  // word in the popover is lifted from the card markup at init, so there is one
+  // source of truth and nothing to keep in step by hand.
+  function initCapabilityPopover() {
+    const stage = qs(".cap-stage");
+    const grid = stage && stage.querySelector(".cards");
+    if (!stage || !grid) return;
+    const cards = Array.from(grid.querySelectorAll("article"));
+    if (!cards.length) return;
+
+    const plainText = node => {
+      if (!node) return "";
+      const copy = node.cloneNode(true);
+      copy.querySelectorAll("span").forEach(span => span.remove());
+      return copy.textContent.replace(/\s+/g, " ").trim();
+    };
+
+    // Read the cards before rewriting them, or the title would come back
+    // wrapped in the button we are about to add.
+    const caps = cards.map(card => {
+      const details = card.querySelector("details");
+      const outcome = card.querySelector(".service-outcome");
+      return {
+        card,
+        number: card.querySelector(".number").textContent.trim(),
+        titleHtml: card.querySelector(".ttl").innerHTML.trim(),
+        lede: card.querySelector("p:not(.service-outcome)").textContent.replace(/\s+/g, " ").trim(),
+        outcomeLabel: outcome.querySelector("span").textContent.trim(),
+        outcomeText: plainText(outcome),
+        deliverLabel: details.querySelector("summary").textContent.replace(/\s+/g, " ").trim(),
+        steps: Array.from(details.querySelectorAll("li")).map(li => li.textContent.replace(/\s+/g, " ").trim())
+      };
+    });
+
+    const overlay = document.createElement("div");
+    overlay.className = "cap-overlay";
+    overlay.id = "capOverlay";
+    overlay.hidden = true;
+    overlay.innerHTML = `
+      <div class="cap-panel" id="capPanel" role="dialog" aria-labelledby="capPanelTitle" tabindex="-1">
+        <div class="cap-inner">
+          <div class="cap-bar">
+            <div class="cap-chips">${caps.map((cap, index) => {
+              const digits = cap.number.replace(/\D/g, "");
+              return `<button class="cap-chip" type="button" data-cap="${index}" aria-label="Capability ${digits}">${digits}</button>`;
+            }).join("")}</div>
+            <button class="cap-close" type="button" aria-label="Close">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+          <div class="cap-body">
+            <span class="cap-num"></span>
+            <h2 class="cap-title" id="capPanelTitle"></h2>
+            <div class="cap-cols">
+              <p class="cap-lede"></p>
+              <p class="cap-outcome"><span></span><span class="cap-outcome-text"></span></p>
+            </div>
+            <div class="cap-deliver">
+              <span class="cap-deliver-label"></span>
+              <div class="cap-steps" data-reveal="h" data-replay="off"></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    stage.appendChild(overlay);
+
+    const panel = overlay.querySelector(".cap-panel");
+    const steps = overlay.querySelector(".cap-steps");
+    const chips = Array.from(overlay.querySelectorAll(".cap-chip"));
+    const closeButton = overlay.querySelector(".cap-close");
+    const CLIP = ["--ct", "--cr", "--cb", "--cl"];
+
+    caps.forEach(cap => {
+      // The heading becomes the control, so the button's accessible name is
+      // exactly the visible title.
+      const title = cap.card.querySelector(".ttl");
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "cap-trigger";
+      trigger.innerHTML = cap.titleHtml;
+      trigger.setAttribute("aria-haspopup", "dialog");
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.setAttribute("aria-controls", "capPanel");
+      title.textContent = "";
+      title.appendChild(trigger);
+      cap.trigger = trigger;
+
+      // <details> is the no-script affordance. With script running the card
+      // must never change size, so it becomes a static signpost instead. The
+      // list itself is in the popover, so the row stays out of the a11y tree.
+      const row = document.createElement("div");
+      row.className = "deliver-row";
+      row.setAttribute("aria-hidden", "true");
+      row.innerHTML = `<span>${escapeHtml(cap.deliverLabel)}</span>
+        <svg class="deliver-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 12h13M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>`;
+      cap.card.querySelector("details").replaceWith(row);
+    });
+
+    const zoomMode = window.matchMedia("(min-width: 1100px) and (hover: hover)");
+    const OPEN_DELAY = 200;
+    const CLOSE_DELAY = 250;
+    let current = -1;
+    let pinned = false;
+    let openTimer = 0;
+    let closeTimer = 0;
+    let stepTimer = 0;
+    let settleTimer = 0;
+    let returnFocus = null;
+    let hoverBlocked = false;
+
+    function fill(index) {
+      const cap = caps[index];
+      overlay.querySelector(".cap-num").textContent = cap.number;
+      overlay.querySelector(".cap-title").innerHTML = cap.titleHtml;
+      overlay.querySelector(".cap-lede").textContent = cap.lede;
+      overlay.querySelector(".cap-outcome > span").textContent = cap.outcomeLabel;
+      overlay.querySelector(".cap-outcome-text").textContent = cap.outcomeText;
+      overlay.querySelector(".cap-deliver-label").textContent = cap.deliverLabel;
+      steps.innerHTML = cap.steps.map((text, position) => {
+        const seg = position < cap.steps.length - 1 ? '<span class="seg" aria-hidden="true"></span>' : "";
+        return `<div class="cap-step" data-item>${seg}
+          <span class="cap-dot">${String(position + 1).padStart(2, "0")}</span>
+          <p>${escapeHtml(text)}</p>
+        </div>`;
+      }).join("");
+      primeRevealSeries(steps);
+      chips.forEach((chip, position) => chip.setAttribute("aria-current", position === index ? "true" : "false"));
+      current = index;
+    }
+
+    // The clip starts as the card's own rectangle, measured against the panel,
+    // and opens to nothing. Only the clip animates, so no layout is touched.
+    function clipToCard(index) {
+      const frame = panel.getBoundingClientRect();
+      const card = caps[index].card.getBoundingClientRect();
+      panel.style.setProperty("--ct", Math.max(0, card.top - frame.top) + "px");
+      panel.style.setProperty("--cl", Math.max(0, card.left - frame.left) + "px");
+      panel.style.setProperty("--cr", Math.max(0, frame.right - card.right) + "px");
+      panel.style.setProperty("--cb", Math.max(0, frame.bottom - card.bottom) + "px");
+    }
+
+    function open(index, options) {
+      const shouldPin = !!(options && options.pin);
+      window.clearTimeout(closeTimer);
+      window.clearTimeout(settleTimer);
+      const fresh = overlay.hidden;
+      overlay.classList.remove("is-closing");
+      fill(index);
+      caps.forEach((cap, position) => cap.trigger.setAttribute("aria-expanded", String(position === index)));
+      if (fresh) {
+        overlay.hidden = false;
+        if (zoomMode.matches && !reducedMotion()) {
+          panel.style.transition = "none";
+          clipToCard(index);
+          void panel.offsetWidth;
+          panel.style.transition = "";
+        }
+      }
+      window.requestAnimationFrame(() => {
+        CLIP.forEach(name => panel.style.setProperty(name, "0px"));
+        overlay.classList.add("is-open");
+      });
+      window.clearTimeout(stepTimer);
+      stepTimer = window.setTimeout(() => playReveal(steps), reducedMotion() ? 0 : 260);
+      if (shouldPin) pinPopover();
+    }
+
+    function pinPopover() {
+      pinned = true;
+      panel.setAttribute("aria-modal", "true");
+      if (!zoomMode.matches) document.documentElement.classList.add("cap-sheet-open");
+      panel.focus();
+    }
+
+    function close(options) {
+      if (overlay.hidden) return;
+      const restore = !(options && options.restoreFocus === false);
+      window.clearTimeout(openTimer);
+      window.clearTimeout(closeTimer);
+      window.clearTimeout(stepTimer);
+      overlay.classList.remove("is-open");
+      overlay.classList.add("is-closing");
+      if (zoomMode.matches && !reducedMotion() && current >= 0) clipToCard(current);
+      const finish = () => {
+        overlay.hidden = true;
+        overlay.classList.remove("is-closing");
+        panel.removeAttribute("aria-modal");
+        document.documentElement.classList.remove("cap-sheet-open");
+        caps.forEach(cap => cap.trigger.setAttribute("aria-expanded", "false"));
+        pinned = false;
+        current = -1;
+      };
+      // Hiding the overlay hands the pointer back to whichever card is under it,
+      // which re-fires pointerenter with no matching pointerleave first. Without
+      // this the popover would spring straight back open after Escape or the
+      // close button. Moving off a card, or off the grid, re-arms hover.
+      if (!(options && options.viaPointerLeave)) hoverBlocked = true;
+      const target = restore ? returnFocus : null;
+      returnFocus = null;
+      if (reducedMotion()) finish();
+      else settleTimer = window.setTimeout(finish, 270);
+      if (target) target.focus();
+    }
+
+    cards.forEach((card, index) => {
+      card.addEventListener("pointerenter", event => {
+        if (event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+        if (!zoomMode.matches || pinned) return;
+        if (hoverBlocked) return;
+        window.clearTimeout(openTimer);
+        openTimer = window.setTimeout(() => open(index), OPEN_DELAY);
+      });
+      card.addEventListener("pointerleave", () => {
+        hoverBlocked = false;
+        window.clearTimeout(openTimer);
+      });
+    });
+
+    // The overlay covers the grid, so moving onto it never leaves the stage and
+    // never closes. Leaving the stage altogether does, after a grace period.
+    stage.addEventListener("pointerenter", () => window.clearTimeout(closeTimer));
+    stage.addEventListener("pointerleave", () => {
+      hoverBlocked = false;                 // leaving the grid re-arms hover
+      if (pinned) return;
+      window.clearTimeout(openTimer);
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(() => close({ restoreFocus: false, viaPointerLeave: true }), CLOSE_DELAY);
+    });
+
+    caps.forEach((cap, index) => {
+      cap.trigger.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.clearTimeout(openTimer);
+        returnFocus = cap.trigger;
+        hoverBlocked = false;
+        if (overlay.hidden || current !== index) open(index, { pin: true });
+        else pinPopover();
+      });
+    });
+
+    chips.forEach((chip, index) => {
+      chip.addEventListener("click", event => {
+        event.stopPropagation();
+        if (index === current) return;
+        open(index);
+        if (pinned) chip.focus();
+      });
+    });
+
+    closeButton.addEventListener("click", event => {
+      event.stopPropagation();
+      close();
+    });
+
+    panel.addEventListener("keydown", event => {
+      if (event.key !== "Tab" || !pinned) return;
+      const stops = chips.concat([closeButton]).filter(el => el.offsetParent !== null);
+      if (!stops.length) { event.preventDefault(); panel.focus(); return; }
+      const first = stops[0];
+      const last = stops[stops.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || active === panel)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (active === last || active === panel)) { event.preventDefault(); first.focus(); }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !overlay.hidden) { event.stopPropagation(); close(); }
+    });
+
+    document.addEventListener("pointerdown", event => {
+      if (overlay.hidden || !pinned) return;
+      if (panel.contains(event.target)) return;
+      close();
+    });
+
+    // Geometry and mode both stop being valid once the viewport changes.
+    zoomMode.addEventListener("change", () => close({ restoreFocus: false }));
+    window.addEventListener("resize", () => { if (!pinned) close({ restoreFocus: false }); });
   }
 
   // ---------------------------------------------------------------- track
@@ -986,6 +1276,7 @@
   // ---------------------------------------------------------------- boot
   loadTrack(tracks[0].id);
   renderAll();
+  initCapabilityPopover();   // before primeReveal, so its series is primed too
   primeReveal();
   applyRoute(location.hash, { push: false, quiet: true });
 })();
